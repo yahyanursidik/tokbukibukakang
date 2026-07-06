@@ -1,38 +1,112 @@
 ---
-import PlaceholderPage from '@/components/PlaceholderPage.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { placeholderPages } from '@/config/site';
 import { getCollection } from 'astro:content';
 
 const page = placeholderPages.preorderHistory;
-const archivedPeriods = (await getCollection('poPeriods')).filter((period) => period.data.status === 'archived');
+const poPeriods = await getCollection('poPeriods');
+const books = await getCollection('books');
+
+const historyPeriods = poPeriods
+  .filter((period) => period.data.status === 'archived' || period.data.status === 'closed')
+  .sort((a, b) => b.data.endDate.getTime() - a.data.endDate.getTime());
+
+const getIncludedBooks = (bookSlugs: string[]) =>
+  books.filter((book) => bookSlugs.includes(book.data.slug));
+
 const formatDate = new Intl.DateTimeFormat('id-ID', {
   day: 'numeric',
   month: 'long',
   year: 'numeric'
 });
+
+const statusLabels = {
+  closed: 'Closed',
+  archived: 'Archived'
+} as const;
 ---
 
 <BaseLayout title="Riwayat PO" description={page.description}>
-  <PlaceholderPage {...page} />
-  <section class="page-shell mt-4">
-    <div class="mb-5">
-      <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Arsip</p>
-      <h2 class="font-serif text-3xl font-bold text-ink">Periode PO yang sudah selesai</h2>
+  <section class="page-shell py-10 sm:py-14">
+    <div class="watercolor-panel p-6 sm:p-8 lg:p-10">
+      <p class="mb-4 inline-flex rounded-full border border-date/20 bg-white/60 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-date">
+        Riwayat PO
+      </p>
+      <h1 class="max-w-3xl font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl">
+        Arsip pre-order untuk melihat jejak kurasi dan pengiriman.
+      </h1>
+      <p class="mt-5 max-w-2xl text-base text-[#5f564e] sm:text-lg">
+        Riwayat PO membantu keluarga melihat periode yang sudah selesai, buku yang pernah dibuka, dan catatan transparansi dari tiap gelombang.
+      </p>
     </div>
-    <div class="grid gap-4">
+
+    <section class="mt-8">
+      <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Arsip dan closed PO</p>
+          <h2 class="font-serif text-3xl font-bold text-ink">Periode yang sudah selesai</h2>
+        </div>
+        <a class="text-sm font-bold text-date hover:text-ink" href="/po">Lihat PO aktif</a>
+      </div>
+
       {
-        archivedPeriods.map(({ data }) => (
-          <article class="soft-card p-5">
-            <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">Status: {data.status}</p>
-            <h3 class="mt-2 font-serif text-2xl font-bold text-ink">{data.title}</h3>
-            <p class="mt-3 max-w-3xl text-sm text-[#70675e]">{data.description}</p>
-            <p class="mt-4 text-sm font-semibold text-[#5f564e]">
-              {formatDate.format(data.startDate)} sampai {formatDate.format(data.endDate)}
+        historyPeriods.length > 0 ? (
+          <div class="grid gap-4">
+            {historyPeriods.map((period) => {
+              const includedBooks = getIncludedBooks(period.data.bookSlugs);
+
+              return (
+                <article class="soft-card p-5 sm:p-6">
+                  <div class="grid gap-5 lg:grid-cols-[1fr_auto]">
+                    <div>
+                      <span class="inline-flex rounded-full bg-white/70 px-3 py-1 text-xs font-bold text-[#5f564e]">
+                        {statusLabels[period.data.status]}
+                      </span>
+                      <h3 class="mt-3 font-serif text-2xl font-bold text-ink">{period.data.title}</h3>
+                      <p class="mt-3 max-w-3xl text-sm text-[#70675e]">{period.data.description}</p>
+                    </div>
+                    <a class="inline-flex h-fit items-center justify-center rounded-full border border-date/25 bg-white/70 px-5 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href={`/po/${period.data.slug}`}>
+                      Lihat detail arsip
+                    </a>
+                  </div>
+
+                  <dl class="mt-5 grid gap-3 text-sm sm:grid-cols-3">
+                    <div class="rounded-2xl bg-parchment/70 p-4">
+                      <dt class="font-bold text-date">Mulai</dt>
+                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.data.startDate)}</dd>
+                    </div>
+                    <div class="rounded-2xl bg-parchment/70 p-4">
+                      <dt class="font-bold text-date">Selesai</dt>
+                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.data.endDate)}</dd>
+                    </div>
+                    <div class="rounded-2xl bg-parchment/70 p-4">
+                      <dt class="font-bold text-date">Estimasi kirim</dt>
+                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.data.estimatedShippingDate)}</dd>
+                    </div>
+                  </dl>
+
+                  <div class="mt-5 flex flex-wrap gap-2">
+                    {includedBooks.map((book) => (
+                      <a class="rounded-full border border-date/15 bg-white/70 px-3 py-1 text-xs font-bold text-[#5f564e] hover:text-date" href={`/buku/${book.data.slug}`}>
+                        {book.data.title}
+                      </a>
+                    ))}
+                  </div>
+
+                  {period.data.notes && <p class="mt-5 rounded-2xl bg-white/62 p-4 text-sm text-[#5f564e]">{period.data.notes}</p>}
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div class="soft-card p-6 sm:p-8">
+            <h3 class="font-serif text-2xl font-bold text-ink">Riwayat PO belum tersedia.</h3>
+            <p class="mt-3 max-w-2xl text-sm text-[#70675e]">
+              Setelah ada periode yang ditutup atau diarsipkan, catatannya akan tampil di sini.
             </p>
-          </article>
-        ))
+          </div>
+        )
       }
-    </div>
+    </section>
   </section>
 </BaseLayout>

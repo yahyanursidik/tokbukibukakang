@@ -137,9 +137,9 @@ const formatPrice = new Intl.NumberFormat('id-ID', {
                 data-themes={data.themes.join('|').toLocaleLowerCase('id-ID')}
                 data-stock={data.stockType}
               >
-                <div class="relative aspect-[4/3] overflow-hidden bg-parchment">
+                <a class="relative block aspect-[4/3] overflow-hidden bg-parchment" href={`/buku/${data.slug}`} aria-label={`Lihat detail ${data.title}`}>
                   <img
-                    class="h-full w-full object-cover"
+                    class="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
                     src={data.coverImage}
                     alt={`Sampul ${data.title}`}
                     loading="lazy"
@@ -150,7 +150,7 @@ const formatPrice = new Intl.NumberFormat('id-ID', {
                   <span class={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold shadow-soft ${data.stockType === 'preorder' ? 'bg-honey text-date' : 'bg-mint text-[#36543c]'}`}>
                     {data.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}
                   </span>
-                </div>
+                </a>
 
                 <div class="flex flex-1 flex-col p-5">
                   <div class="mb-3 flex flex-wrap gap-2">
@@ -160,7 +160,9 @@ const formatPrice = new Intl.NumberFormat('id-ID', {
                       </span>
                     ))}
                   </div>
-                  <h3 class="font-serif text-xl font-bold leading-tight text-ink">{data.title}</h3>
+                  <h3 class="font-serif text-xl font-bold leading-tight text-ink">
+                    <a class="hover:text-date" href={`/buku/${data.slug}`}>{data.title}</a>
+                  </h3>
                   {data.subtitle && <p class="mt-1 text-sm font-semibold text-date">{data.subtitle}</p>}
                   <p class="mt-3 text-sm text-[#70675e]">{data.reviewSummary || data.shortDescription}</p>
                   <div class="mt-4 flex flex-wrap gap-2">
@@ -179,6 +181,10 @@ const formatPrice = new Intl.NumberFormat('id-ID', {
                         type="button"
                         data-cart-button
                         data-book-slug={data.slug}
+                        data-book-title={data.title}
+                        data-book-price={data.price}
+                        data-book-cover-image={data.coverImage}
+                        data-book-stock-type={data.stockType}
                       >
                         Masukkan Keranjang
                       </button>
@@ -203,15 +209,17 @@ const formatPrice = new Intl.NumberFormat('id-ID', {
 </BaseLayout>
 
 <script>
-  const normalize = (value) => value.toLocaleLowerCase('id-ID').trim();
-  const cards = Array.from(document.querySelectorAll('[data-book-card]'));
+  import { addToCart, type CartItemInput } from '@/lib/cart';
+
+  const normalize = (value: string) => value.toLocaleLowerCase('id-ID').trim();
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-book-card]'));
   const resultCount = document.querySelector('[data-result-count]');
   const emptyState = document.querySelector('[data-empty-state]');
-  const searchInput = document.querySelector('[data-filter-search]');
-  const ageSelect = document.querySelector('[data-filter-age]');
-  const categorySelect = document.querySelector('[data-filter-category]');
-  const themeSelect = document.querySelector('[data-filter-theme]');
-  const stockInputs = Array.from(document.querySelectorAll('[data-filter-stock]'));
+  const searchInput = document.querySelector<HTMLInputElement>('[data-filter-search]');
+  const ageSelect = document.querySelector<HTMLSelectElement>('[data-filter-age]');
+  const categorySelect = document.querySelector<HTMLSelectElement>('[data-filter-category]');
+  const themeSelect = document.querySelector<HTMLSelectElement>('[data-filter-theme]');
+  const stockInputs = Array.from(document.querySelectorAll<HTMLInputElement>('[data-filter-stock]'));
   const resetButton = document.querySelector('[data-reset-filters]');
 
   const getSelectedStock = () => {
@@ -219,7 +227,7 @@ const formatPrice = new Intl.NumberFormat('id-ID', {
     return selected?.value || 'all';
   };
 
-  const overlapsAgeRange = (card, ageValue) => {
+  const overlapsAgeRange = (card: HTMLElement, ageValue: string) => {
     if (ageValue === 'all') {
       return true;
     }
@@ -232,6 +240,10 @@ const formatPrice = new Intl.NumberFormat('id-ID', {
   };
 
   const applyFilters = () => {
+    if (!searchInput || !ageSelect || !categorySelect || !themeSelect || !resultCount || !emptyState) {
+      return;
+    }
+
     const search = normalize(searchInput.value);
     const age = ageSelect.value;
     const category = normalize(categorySelect.value);
@@ -240,10 +252,10 @@ const formatPrice = new Intl.NumberFormat('id-ID', {
     let visibleCount = 0;
 
     cards.forEach((card) => {
-      const matchesSearch = !search || card.dataset.title.includes(search);
+      const matchesSearch = !search || (card.dataset.title ?? '').includes(search);
       const matchesAge = overlapsAgeRange(card, age);
-      const matchesCategory = category === 'all' || card.dataset.categories.split('|').includes(category);
-      const matchesTheme = theme === 'all' || card.dataset.themes.split('|').includes(theme);
+      const matchesCategory = category === 'all' || (card.dataset.categories ?? '').split('|').includes(category);
+      const matchesTheme = theme === 'all' || (card.dataset.themes ?? '').split('|').includes(theme);
       const matchesStock = stock === 'all' || card.dataset.stock === stock;
       const isVisible = matchesSearch && matchesAge && matchesCategory && matchesTheme && matchesStock;
 
@@ -257,13 +269,17 @@ const formatPrice = new Intl.NumberFormat('id-ID', {
     emptyState.classList.toggle('hidden', visibleCount > 0);
   };
 
-  searchInput.addEventListener('input', applyFilters);
-  ageSelect.addEventListener('change', applyFilters);
-  categorySelect.addEventListener('change', applyFilters);
-  themeSelect.addEventListener('change', applyFilters);
+  searchInput?.addEventListener('input', applyFilters);
+  ageSelect?.addEventListener('change', applyFilters);
+  categorySelect?.addEventListener('change', applyFilters);
+  themeSelect?.addEventListener('change', applyFilters);
   stockInputs.forEach((input) => input.addEventListener('change', applyFilters));
 
-  resetButton.addEventListener('click', () => {
+  resetButton?.addEventListener('click', () => {
+    if (!searchInput || !ageSelect || !categorySelect || !themeSelect) {
+      return;
+    }
+
     searchInput.value = '';
     ageSelect.value = 'all';
     categorySelect.value = 'all';
@@ -274,9 +290,39 @@ const formatPrice = new Intl.NumberFormat('id-ID', {
     applyFilters();
   });
 
-  document.querySelectorAll('[data-cart-button]').forEach((button) => {
+  const getCartItemFromButton = (button: HTMLButtonElement): CartItemInput | null => {
+    const { bookSlug, bookTitle, bookPrice, bookCoverImage, bookStockType } = button.dataset;
+    const price = Number(bookPrice);
+
+    if (
+      !bookSlug ||
+      !bookTitle ||
+      !bookCoverImage ||
+      (bookStockType !== 'preorder' && bookStockType !== 'ready_stock') ||
+      !Number.isFinite(price)
+    ) {
+      return null;
+    }
+
+    return {
+      slug: bookSlug,
+      title: bookTitle,
+      price,
+      coverImage: bookCoverImage,
+      stockType: bookStockType
+    };
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('[data-cart-button]').forEach((button) => {
     button.addEventListener('click', () => {
-      button.textContent = 'Disiapkan';
+      const cartItem = getCartItemFromButton(button);
+
+      if (!cartItem) {
+        return;
+      }
+
+      addToCart(cartItem);
+      button.textContent = 'Masuk Keranjang';
       window.setTimeout(() => {
         button.textContent = 'Masukkan Keranjang';
       }, 1400);

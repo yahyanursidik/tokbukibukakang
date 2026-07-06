@@ -36,6 +36,11 @@ const isActive = (href: string) => normalizePath(href) === activePath;
         siteConfig.navItems.map((item) => (
           <a class="nav-link" href={item.href} data-active={isActive(item.href)}>
             {item.label}
+            {item.href === '/keranjang' && (
+              <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-honey px-1.5 py-0.5 text-[0.68rem] font-bold leading-none text-date" data-cart-count>
+                0
+              </span>
+            )}
           </a>
         ))
       }
@@ -55,6 +60,11 @@ const isActive = (href: string) => normalizePath(href) === activePath;
           siteConfig.navItems.map((item) => (
             <a class="nav-link" href={item.href} data-active={isActive(item.href)}>
               {item.label}
+              {item.href === '/keranjang' && (
+                <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-honey px-1.5 py-0.5 text-[0.68rem] font-bold leading-none text-date" data-cart-count>
+                  0
+                </span>
+              )}
             </a>
           ))
         }
@@ -62,3 +72,24 @@ const isActive = (href: string) => normalizePath(href) === activePath;
     </details>
   </div>
 </header>
+
+<script>
+  import { CART_UPDATED_EVENT, getTotalItems, readCart } from '@/lib/cart';
+
+  const updateCartBadges = () => {
+    const totalItems = getTotalItems(readCart());
+
+    document.querySelectorAll('[data-cart-count]').forEach((badge) => {
+      badge.textContent = String(totalItems);
+      badge.setAttribute('aria-label', `${totalItems} item di keranjang`);
+    });
+  };
+
+  updateCartBadges();
+  window.addEventListener(CART_UPDATED_EVENT, updateCartBadges);
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'ibu-kakang-cart') {
+      updateCartBadges();
+    }
+  });
+</script>
