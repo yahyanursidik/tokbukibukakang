@@ -1,11 +1,23 @@
 ---
-import PlaceholderPage from '@/components/PlaceholderPage.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { placeholderPages } from '@/config/site';
 import { getCollection } from 'astro:content';
 
 const page = placeholderPages.preorder;
-const poPeriods = (await getCollection('poPeriods')).filter((period) => period.data.status === 'open');
+const poPeriods = await getCollection('poPeriods');
+const books = await getCollection('books');
+
+const getIncludedBooks = (bookSlugs: string[]) =>
+  books.filter((book) => bookSlugs.includes(book.data.slug));
+
+const publicPeriods = poPeriods.filter((period) => period.data.status !== 'draft');
+const openPeriods = publicPeriods
+  .filter((period) => period.data.status === 'open')
+  .sort((a, b) => a.data.endDate.getTime() - b.data.endDate.getTime());
+const closedPeriods = publicPeriods
+  .filter((period) => period.data.status === 'closed')
+  .sort((a, b) => b.data.endDate.getTime() - a.data.endDate.getTime());
+
 const formatDate = new Intl.DateTimeFormat('id-ID', {
   day: 'numeric',
   month: 'long',
@@ -14,43 +26,163 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
 ---
 
 <BaseLayout title="PO" description={page.description}>
-  <PlaceholderPage {...page} />
-  <section class="page-shell mt-4">
-    <div class="mb-5">
-      <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">PO aktif</p>
-      <h2 class="font-serif text-3xl font-bold text-ink">Periode yang sedang dibuka</h2>
+  <section class="page-shell py-10 sm:py-14">
+    <div class="watercolor-panel p-6 sm:p-8 lg:p-10">
+      <div class="grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          <p class="mb-4 inline-flex rounded-full border border-date/20 bg-white/60 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-date">
+            Pre-order
+          </p>
+          <h1 class="max-w-3xl font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl">
+            Ikuti periode PO dengan tanggal dan estimasi yang jelas.
+          </h1>
+          <p class="mt-5 max-w-2xl text-base text-[#5f564e] sm:text-lg">
+            Halaman ini menampilkan PO yang sedang dibuka. Draft internal tidak ditampilkan ke publik, sedangkan periode selesai bisa dilihat di riwayat.
+          </p>
+        </div>
+        <div class="po-motif" aria-hidden="true">
+          <span class="po-motif-package"></span>
+          <span class="po-motif-paper"></span>
+          <span class="po-motif-bookmark"></span>
+        </div>
+      </div>
     </div>
-    <div class="grid gap-4">
+
+    <section class="mt-8">
+      <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">PO aktif</p>
+          <h2 class="font-serif text-3xl font-bold text-ink">Periode yang sedang dibuka</h2>
+        </div>
+        <a class="text-sm font-bold text-date hover:text-ink" href="/riwayat-po">Lihat riwayat PO</a>
+      </div>
+
       {
-        poPeriods.map(({ data }) => (
-          <article class="soft-card p-5">
-            <div class="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">Status: {data.status}</p>
-                <h3 class="mt-2 font-serif text-2xl font-bold text-ink">{data.title}</h3>
-                <p class="mt-3 max-w-3xl text-sm text-[#70675e]">{data.description}</p>
-              </div>
-              <span class="rounded-full bg-mint/70 px-4 py-2 text-sm font-bold text-[#36543c]">
-                {data.bookSlugs.length} buku
-              </span>
-            </div>
-            <dl class="mt-5 grid gap-3 text-sm sm:grid-cols-3">
-              <div>
-                <dt class="font-bold text-date">Mulai</dt>
-                <dd class="text-[#5f564e]">{formatDate.format(data.startDate)}</dd>
-              </div>
-              <div>
-                <dt class="font-bold text-date">Tutup</dt>
-                <dd class="text-[#5f564e]">{formatDate.format(data.endDate)}</dd>
-              </div>
-              <div>
-                <dt class="font-bold text-date">Estimasi kirim</dt>
-                <dd class="text-[#5f564e]">{formatDate.format(data.estimatedShippingDate)}</dd>
-              </div>
-            </dl>
-          </article>
-        ))
+        openPeriods.length > 0 ? (
+          <div class="grid gap-4">
+            {openPeriods.map((period) => {
+              const includedBooks = getIncludedBooks(period.data.bookSlugs);
+
+              return (
+                <article class="soft-card p-5 sm:p-6">
+                  <div class="grid gap-5 lg:grid-cols-[1fr_auto]">
+                    <div>
+                      <span class="inline-flex rounded-full bg-mint/75 px-3 py-1 text-xs font-bold text-[#36543c]">Open</span>
+                      <h3 class="mt-3 font-serif text-2xl font-bold text-ink">{period.data.title}</h3>
+                      <p class="mt-3 max-w-3xl text-sm text-[#70675e]">{period.data.description}</p>
+                    </div>
+                    <a class="inline-flex h-fit items-center justify-center rounded-full bg-date px-5 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-ink" href={`/po/${period.data.slug}`}>
+                      Lihat detail PO
+                    </a>
+                  </div>
+
+                  <dl class="mt-5 grid gap-3 text-sm sm:grid-cols-3">
+                    <div class="rounded-2xl bg-parchment/70 p-4">
+                      <dt class="font-bold text-date">Mulai</dt>
+                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.data.startDate)}</dd>
+                    </div>
+                    <div class="rounded-2xl bg-parchment/70 p-4">
+                      <dt class="font-bold text-date">Tutup PO</dt>
+                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.data.endDate)}</dd>
+                    </div>
+                    <div class="rounded-2xl bg-parchment/70 p-4">
+                      <dt class="font-bold text-date">Estimasi kirim</dt>
+                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.data.estimatedShippingDate)}</dd>
+                    </div>
+                  </dl>
+
+                  <div class="mt-5 flex flex-wrap gap-2">
+                    {includedBooks.map((book) => (
+                      <a class="rounded-full border border-date/15 bg-white/70 px-3 py-1 text-xs font-bold text-[#5f564e] hover:text-date" href={`/buku/${book.data.slug}`}>
+                        {book.data.title}
+                      </a>
+                    ))}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div class="soft-card p-6 sm:p-8">
+            <h3 class="font-serif text-2xl font-bold text-ink">Belum ada PO yang sedang dibuka.</h3>
+            <p class="mt-3 max-w-2xl text-sm text-[#70675e]">
+              Silakan cek kembali nanti atau lihat riwayat PO untuk memahami pola pre-order sebelumnya.
+            </p>
+          </div>
+        )
       }
-    </div>
+    </section>
+
+    {
+      closedPeriods.length > 0 && (
+        <section class="mt-10">
+          <div class="mb-5">
+            <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Baru ditutup</p>
+            <h2 class="font-serif text-3xl font-bold text-ink">PO yang menunggu proses berikutnya</h2>
+          </div>
+          <div class="grid gap-4 md:grid-cols-2">
+            {closedPeriods.map((period) => (
+              <article class="soft-card p-5">
+                <span class="inline-flex rounded-full bg-honey/60 px-3 py-1 text-xs font-bold text-date">Closed</span>
+                <h3 class="mt-3 font-serif text-2xl font-bold text-ink">{period.data.title}</h3>
+                <p class="mt-3 text-sm text-[#70675e]">{period.data.description}</p>
+                <p class="mt-4 text-sm font-semibold text-[#5f564e]">Ditutup {formatDate.format(period.data.endDate)}</p>
+                <a class="mt-5 inline-flex rounded-full border border-date/25 bg-white/70 px-4 py-2 text-sm font-bold text-ink hover:bg-parchment" href={`/po/${period.data.slug}`}>
+                  Lihat detail
+                </a>
+              </article>
+            ))}
+          </div>
+        </section>
+      )
+    }
   </section>
 </BaseLayout>
+
+<style>
+  .po-motif {
+    height: 170px;
+    position: relative;
+    width: min(260px, 100%);
+  }
+
+  .po-motif-package,
+  .po-motif-paper,
+  .po-motif-bookmark {
+    position: absolute;
+  }
+
+  .po-motif-package {
+    bottom: 18px;
+    left: 24px;
+    height: 92px;
+    width: 130px;
+    border: 2px solid rgba(138, 95, 63, 0.55);
+    border-radius: 22px;
+    background:
+      linear-gradient(90deg, transparent 45%, rgba(138, 95, 63, 0.22) 45% 55%, transparent 55%),
+      linear-gradient(180deg, #f2ca7e 0 38%, #f8ecd7 38%);
+    box-shadow: 0 14px 0 rgba(185, 216, 194, 0.45);
+  }
+
+  .po-motif-paper {
+    right: 28px;
+    top: 18px;
+    height: 96px;
+    width: 112px;
+    border: 2px solid rgba(138, 95, 63, 0.4);
+    border-radius: 18px;
+    background: rgba(255, 250, 241, 0.88);
+    transform: rotate(8deg);
+  }
+
+  .po-motif-bookmark {
+    right: 76px;
+    bottom: 12px;
+    height: 102px;
+    width: 44px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+    background: #eeb7ad;
+    border: 2px solid rgba(138, 95, 63, 0.42);
+  }
+</style>
