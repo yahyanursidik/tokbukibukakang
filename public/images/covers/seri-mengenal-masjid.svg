@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Sampul Seri Mengenal Masjid</title>
+  <desc id="desc">Placeholder sampul dengan motif buku, lengkung arsitektural, dan bentuk geometris.</desc>
+  <rect width="640" height="480" fill="#fff8ef"/>
+  <rect x="66" y="60" width="508" height="360" rx="40" fill="#f8ecd7" stroke="#8a5f3f" stroke-opacity=".3" stroke-width="4"/>
+  <path d="M176 354V220c0-66 54-120 120-120s120 54 120 120v134z" fill="#b9d8c2" stroke="#8a5f3f" stroke-width="5"/>
+  <path d="M232 354V238c0-36 28-66 64-66s64 30 64 66v116z" fill="#fff8ef" stroke="#8a5f3f" stroke-width="4" opacity=".86"/>
+  <rect x="126" y="334" width="388" height="34" rx="17" fill="#f2ca7e" stroke="#8a5f3f" stroke-width="4"/>
+  <path d="M464 132h46v170h-46z" fill="#b8dce8" stroke="#8a5f3f" stroke-width="4"/>
+  <path d="M444 132h86l-43-48z" fill="#eeb7ad" stroke="#8a5f3f" stroke-width="4"/>
+</svg>

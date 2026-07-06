@@ -1,0 +1,37 @@
+---
+import PlaceholderPage from '@/components/PlaceholderPage.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { placeholderPages } from '@/config/site';
+import { getCollection } from 'astro:content';
+
+const page = placeholderPages.reviews;
+const reviews = await getCollection('reviews');
+---
+
+<BaseLayout title="Resensi" description={page.description}>
+  <PlaceholderPage {...page} />
+  <section class="page-shell mt-4">
+    <div class="mb-5">
+      <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Contoh resensi</p>
+      <h2 class="font-serif text-3xl font-bold text-ink">Ringkasan dari content collection</h2>
+    </div>
+    <div class="grid gap-4 lg:grid-cols-3">
+      {
+        reviews.map(({ data }) => (
+          <article class="soft-card p-5">
+            <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">
+              {data.sourceType === 'original' ? 'Resensi original' : 'Ringkasan eksternal'}
+            </p>
+            <h3 class="mt-3 font-serif text-xl font-bold leading-tight text-ink">{data.title}</h3>
+            <p class="mt-3 text-sm text-[#70675e]">{data.summary}</p>
+            {data.reviewerNote && (
+              <p class="mt-4 rounded-2xl bg-parchment/70 p-3 text-sm font-medium text-[#5f564e]">
+                {data.reviewerNote}
+              </p>
+            )}
+          </article>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

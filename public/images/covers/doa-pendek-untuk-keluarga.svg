@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Sampul Doa Pendek untuk Keluarga</title>
+  <desc id="desc">Placeholder sampul dengan motif kertas, bookmark, dan pola lembut.</desc>
+  <rect width="640" height="480" fill="#fff8ef"/>
+  <path d="M76 64h488v352H76z" fill="#b8dce8" opacity=".45"/>
+  <rect x="148" y="74" width="344" height="332" rx="30" fill="#fffaf1" stroke="#8a5f3f" stroke-opacity=".35" stroke-width="4"/>
+  <path d="M402 74h54v150l-27-24-27 24z" fill="#f2ca7e" stroke="#8a5f3f" stroke-width="4"/>
+  <rect x="196" y="154" width="248" height="18" rx="9" fill="#eeb7ad" opacity=".75"/>
+  <rect x="196" y="208" width="188" height="18" rx="9" fill="#b9d8c2" opacity=".85"/>
+  <rect x="196" y="262" width="232" height="18" rx="9" fill="#f2ca7e" opacity=".75"/>
+  <circle cx="108" cy="368" r="34" fill="#eeb7ad" opacity=".55"/>
+  <circle cx="540" cy="118" r="28" fill="#b9d8c2" opacity=".75"/>
+</svg>

@@ -1,0 +1,38 @@
+---
+import PlaceholderPage from '@/components/PlaceholderPage.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { placeholderPages } from '@/config/site';
+import { getCollection } from 'astro:content';
+
+const page = placeholderPages.preorderHistory;
+const archivedPeriods = (await getCollection('poPeriods')).filter((period) => period.data.status === 'archived');
+const formatDate = new Intl.DateTimeFormat('id-ID', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'
+});
+---
+
+<BaseLayout title="Riwayat PO" description={page.description}>
+  <PlaceholderPage {...page} />
+  <section class="page-shell mt-4">
+    <div class="mb-5">
+      <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Arsip</p>
+      <h2 class="font-serif text-3xl font-bold text-ink">Periode PO yang sudah selesai</h2>
+    </div>
+    <div class="grid gap-4">
+      {
+        archivedPeriods.map(({ data }) => (
+          <article class="soft-card p-5">
+            <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">Status: {data.status}</p>
+            <h3 class="mt-2 font-serif text-2xl font-bold text-ink">{data.title}</h3>
+            <p class="mt-3 max-w-3xl text-sm text-[#70675e]">{data.description}</p>
+            <p class="mt-4 text-sm font-semibold text-[#5f564e]">
+              {formatDate.format(data.startDate)} sampai {formatDate.format(data.endDate)}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Sampul Kisah Nilai dari Alam</title>
+  <desc id="desc">Placeholder sampul dengan motif daun, kertas, dan garis air.</desc>
+  <rect width="640" height="480" fill="#fff8ef"/>
+  <rect x="62" y="54" width="516" height="372" rx="44" fill="#b9d8c2" opacity=".45"/>
+  <path d="M180 312c112-16 198-94 236-220 80 122 46 254-70 310-78 38-144 10-166-90z" fill="#b9d8c2" stroke="#6d8f70" stroke-width="6"/>
+  <path d="M230 338c58-80 112-150 186-246" stroke="#6d8f70" stroke-width="5" stroke-linecap="round" opacity=".65"/>
+  <rect x="104" y="96" width="138" height="96" rx="20" fill="#fffaf1" stroke="#8a5f3f" stroke-opacity=".36" stroke-width="4" transform="rotate(-7 104 96)"/>
+  <path d="M444 328c34 22 70 22 104 0" stroke="#b8dce8" stroke-width="12" stroke-linecap="round"/>
+  <path d="M432 368c42 24 88 24 130 0" stroke="#b8dce8" stroke-width="12" stroke-linecap="round" opacity=".75"/>
+</svg>

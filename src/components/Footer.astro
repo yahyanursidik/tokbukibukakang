@@ -1,0 +1,42 @@
+---
+import { siteConfig } from '@/config/site';
+
+const primaryLinks = siteConfig.navItems.slice(0, 6);
+const supportLinks = siteConfig.navItems.slice(6);
+---
+
+<footer class="mt-20 border-t border-[#eadcc7]/80 bg-[#fff8ef]/70">
+  <div class="page-shell grid gap-8 py-10 md:grid-cols-[1.1fr_0.9fr_0.9fr]">
+    <section>
+      <div class="mb-4 flex items-center gap-3">
+        <span class="h-10 w-10 rounded-2xl border border-date/25 bg-mint"></span>
+        <div>
+          <p class="font-serif text-xl font-bold text-ink">{siteConfig.name}</p>
+          <p class="text-sm text-[#70675e]">{siteConfig.tagline}</p>
+        </div>
+      </div>
+      <p class="max-w-md text-sm text-[#70675e]">
+        Struktur awal website disiapkan untuk katalog, resensi, pre-order, panduan belanja, dan informasi toko tanpa database atau keranjang aktif.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="mb-3 text-sm font-bold uppercase tracking-[0.14em] text-date">Belanja</h2>
+      <ul class="grid gap-2 text-sm text-[#5f564e]">
+        {primaryLinks.map((item) => <li><a class="hover:text-ink" href={item.href}>{item.label}</a></li>)}
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="mb-3 text-sm font-bold uppercase tracking-[0.14em] text-date">Bantuan</h2>
+      <ul class="grid gap-2 text-sm text-[#5f564e]">
+        {supportLinks.map((item) => <li><a class="hover:text-ink" href={item.href}>{item.label}</a></li>)}
+      </ul>
+    </section>
+  </div>
+  <div class="border-t border-[#eadcc7]/80 py-4">
+    <p class="page-shell text-xs text-[#70675e]">
+      &copy; {new Date().getFullYear()} {siteConfig.name}. Dibangun sebagai fondasi awal.
+    </p>
+  </div>
+</footer>

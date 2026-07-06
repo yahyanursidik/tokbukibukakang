@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# generated output
+dist/
+.astro/
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# environment
+.env
+.env.*
+!.env.example
+
+# system files
+.DS_Store
+Thumbs.db

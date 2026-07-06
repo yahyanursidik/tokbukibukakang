@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --color-ink: #2f2a25;
+    --color-muted: #70675e;
+    --color-line: #eadcc7;
+  }
+
+  html {
+    min-width: 320px;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    margin: 0;
+    background:
+      linear-gradient(135deg, rgba(255, 248, 239, 0.92), rgba(248, 236, 215, 0.78)),
+      linear-gradient(45deg, rgba(185, 216, 194, 0.2) 0 25%, transparent 25% 50%, rgba(184, 220, 232, 0.16) 50% 75%, transparent 75%);
+    background-color: #fff8ef;
+    background-size: auto, 34px 34px;
+    color: var(--color-ink);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    background: #f2ca7e;
+    color: #2f2a25;
+  }
+}
+
+@layer components {
+  .page-shell {
+    width: min(1120px, calc(100% - 32px));
+    margin-inline: auto;
+  }
+
+  .soft-card {
+    border: 1px solid rgba(234, 220, 199, 0.86);
+    border-radius: 28px;
+    background: rgba(255, 252, 246, 0.82);
+    box-shadow: 0 18px 45px rgba(89, 64, 42, 0.12);
+    backdrop-filter: blur(12px);
+  }
+
+  .watercolor-panel {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(234, 220, 199, 0.86);
+    border-radius: 32px;
+    background:
+      linear-gradient(120deg, rgba(255, 252, 246, 0.9), rgba(248, 236, 215, 0.72)),
+      repeating-linear-gradient(90deg, rgba(238, 183, 173, 0.14) 0 1px, transparent 1px 18px);
+    box-shadow: 0 22px 60px rgba(89, 64, 42, 0.14);
+  }
+
+  .nav-link {
+    border-radius: 999px;
+    padding: 0.56rem 0.82rem;
+    color: #5f564e;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1;
+    transition:
+      background-color 180ms ease,
+      color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .nav-link:hover,
+  .nav-link:focus-visible {
+    background: rgba(242, 202, 126, 0.32);
+    color: #2f2a25;
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  .nav-link[data-active='true'] {
+    background: #2f2a25;
+    color: #fff8ef;
+  }
+
+  .motif {
+    position: relative;
+    width: 132px;
+    height: 132px;
+    flex: 0 0 auto;
+  }
+
+  .motif-book::before,
+  .motif-book::after,
+  .motif-paper::before,
+  .motif-package::before,
+  .motif-bookmark::before,
+  .motif-leaf::before,
+  .motif-flower::before {
+    position: absolute;
+    content: '';
+    display: block;
+  }
+
+  .motif-book::before {
+    inset: 20px 62px 18px 18px;
+    border: 2px solid #8a5f3f;
+    border-radius: 14px 6px 6px 14px;
+    background: #b8dce8;
+    box-shadow: 54px 0 0 #f2ca7e;
+  }
+
+  .motif-book::after {
+    inset: 30px 60px 28px 62px;
+    border-left: 2px dashed rgba(47, 42, 37, 0.34);
+  }
+
+  .motif-paper::before {
+    inset: 18px 32px 18px 28px;
+    border: 2px solid #8a5f3f;
+    border-radius: 12px;
+    background:
+      linear-gradient(#fffaf1 0 0) padding-box,
+      linear-gradient(135deg, #eeb7ad, #b9d8c2) border-box;
+    box-shadow:
+      10px 10px 0 rgba(184, 220, 232, 0.48),
+      inset 0 22px 0 rgba(242, 202, 126, 0.22);
+  }
+
+  .motif-package::before {
+    inset: 34px 18px 26px;
+    border: 2px solid #8a5f3f;
+    border-radius: 18px;
+    background:
+      linear-gradient(90deg, transparent 45%, rgba(138, 95, 63, 0.28) 45% 55%, transparent 55%),
+      linear-gradient(180deg, rgba(242, 202, 126, 0.86) 0 38%, rgba(248, 236, 215, 0.92) 38%);
+    box-shadow: 0 12px 0 rgba(185, 216, 194, 0.42);
+  }
+
+  .motif-bookmark::before {
+    inset: 18px 44px 18px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%);
+    background: linear-gradient(180deg, #eeb7ad, #f2ca7e);
+    border: 2px solid #8a5f3f;
+  }
+
+  .motif-leaf::before {
+    inset: 22px 26px 30px;
+    border: 2px solid #6d8f70;
+    border-radius: 70% 18% 70% 18%;
+    background: #b9d8c2;
+    transform: rotate(-22deg);
+    box-shadow: inset 38px 0 0 rgba(255, 248, 239, 0.38);
+  }
+
+  .motif-flower::before {
+    inset: 22px;
+    border: 18px solid #eeb7ad;
+    border-radius: 42% 58% 45% 55%;
+    background: #f2ca7e;
+    box-shadow:
+      30px 8px 0 -10px #b9d8c2,
+      -28px 20px 0 -12px #b8dce8;
+    transform: rotate(16deg);
+  }
+}

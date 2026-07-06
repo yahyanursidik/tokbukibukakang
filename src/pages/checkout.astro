@@ -1,0 +1,11 @@
+---
+import PlaceholderPage from '@/components/PlaceholderPage.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { placeholderPages } from '@/config/site';
+
+const page = placeholderPages.checkout;
+---
+
+<BaseLayout title="Checkout" description={page.description}>
+  <PlaceholderPage {...page} />
+</BaseLayout>

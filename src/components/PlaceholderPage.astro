@@ -1,0 +1,51 @@
+---
+type Accent = 'book' | 'paper' | 'package' | 'bookmark' | 'leaf' | 'flower';
+
+type Props = {
+  eyebrow: string;
+  title: string;
+  description: string;
+  accent?: Accent;
+};
+
+const {
+  eyebrow,
+  title,
+  description,
+  accent = 'book'
+} = Astro.props;
+---
+
+<section class="page-shell py-12 sm:py-16">
+  <div class="watercolor-panel p-6 sm:p-8 lg:p-12">
+    <div class="grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+      <div>
+        <p class="mb-4 inline-flex rounded-full border border-date/20 bg-white/60 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-date">
+          {eyebrow}
+        </p>
+        <h1 class="max-w-3xl font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl">
+          {title}
+        </h1>
+        <p class="mt-5 max-w-2xl text-base text-[#5f564e] sm:text-lg">
+          {description}
+        </p>
+      </div>
+      <div class={`motif motif-${accent}`} aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <div class="mt-8 grid gap-4 sm:grid-cols-3">
+    <article class="soft-card p-5">
+      <p class="text-sm font-bold text-date">Fondasi</p>
+      <p class="mt-2 text-sm text-[#70675e]">Layout dasar, navigasi, dan rute sudah tersedia untuk pengembangan berikutnya.</p>
+    </article>
+    <article class="soft-card p-5">
+      <p class="text-sm font-bold text-date">Konten</p>
+      <p class="mt-2 text-sm text-[#70675e]">Teks dan data masih berupa placeholder sampai katalog dan halaman detail disiapkan.</p>
+    </article>
+    <article class="soft-card p-5">
+      <p class="text-sm font-bold text-date">Fitur</p>
+      <p class="mt-2 text-sm text-[#70675e]">Database, keranjang, checkout, dan CMS belum diaktifkan pada tahap setup ini.</p>
+    </article>
+  </div>
+</section>

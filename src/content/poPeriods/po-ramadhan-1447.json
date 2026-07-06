@@ -1,0 +1,15 @@
+{
+  "title": "PO Ramadhan 1447 H",
+  "slug": "po-ramadhan-1447",
+  "startDate": "2026-01-12",
+  "endDate": "2026-01-26",
+  "estimatedShippingDate": "2026-02-18",
+  "status": "open",
+  "description": "Pre-order buku dan paket aktivitas bertema adab, doa, dan syukur untuk persiapan bacaan keluarga menjelang Ramadhan.",
+  "bookSlugs": [
+    "doa-pendek-untuk-keluarga",
+    "kisah-nilai-dari-alam",
+    "paket-jurnal-syukur-anak"
+  ],
+  "notes": "Kuota dapat ditutup lebih cepat bila stok dari penerbit sudah terpenuhi."
+}

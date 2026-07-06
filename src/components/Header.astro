@@ -1,0 +1,64 @@
+---
+import { siteConfig } from '@/config/site';
+
+type Props = {
+  currentPath: string;
+};
+
+const { currentPath } = Astro.props;
+
+const normalizePath = (path: string) => {
+  if (path.length > 1 && path.endsWith('/')) {
+    return path.slice(0, -1);
+  }
+
+  return path;
+};
+
+const activePath = normalizePath(currentPath);
+const isActive = (href: string) => normalizePath(href) === activePath;
+---
+
+<header class="sticky top-0 z-30 border-b border-[#eadcc7]/80 bg-[#fff8ef]/88 backdrop-blur-md">
+  <div class="page-shell flex min-h-20 items-center justify-between gap-4 py-3">
+    <a href="/" class="flex min-w-0 items-center gap-3" aria-label={`${siteConfig.name} beranda`}>
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-date/30 bg-parchment shadow-soft">
+        <span class="h-6 w-7 rounded-sm rounded-l-lg border-2 border-date bg-sky shadow-[12px_0_0_#f2ca7e]"></span>
+      </span>
+      <span class="min-w-0">
+        <span class="block truncate font-serif text-xl font-bold leading-tight text-ink">{siteConfig.name}</span>
+        <span class="block truncate text-xs font-semibold uppercase tracking-[0.16em] text-date">Bookstore anak Islami</span>
+      </span>
+    </a>
+
+    <nav class="hidden max-w-[720px] flex-wrap justify-end gap-1 md:flex" aria-label="Navigasi utama">
+      {
+        siteConfig.navItems.map((item) => (
+          <a class="nav-link" href={item.href} data-active={isActive(item.href)}>
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <details class="group relative md:hidden">
+      <summary class="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-2xl border border-date/20 bg-white/70 text-ink shadow-soft transition hover:bg-parchment focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-date">
+        <span class="sr-only">Buka navigasi</span>
+        <span class="flex h-4 w-5 flex-col justify-between">
+          <span class="h-0.5 rounded-full bg-ink"></span>
+          <span class="h-0.5 rounded-full bg-ink"></span>
+          <span class="h-0.5 rounded-full bg-ink"></span>
+        </span>
+      </summary>
+      <nav class="soft-card absolute right-0 mt-3 grid w-[min(86vw,320px)] gap-1 p-3" aria-label="Navigasi mobile">
+        {
+          siteConfig.navItems.map((item) => (
+            <a class="nav-link" href={item.href} data-active={isActive(item.href)}>
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+    </details>
+  </div>
+</header>

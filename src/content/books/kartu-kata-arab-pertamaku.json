@@ -1,0 +1,20 @@
+{
+  "title": "Kartu Kata Arab Pertamaku",
+  "slug": "kartu-kata-arab-pertamaku",
+  "subtitle": "Kosakata benda harian untuk latihan ringan",
+  "author": "Tim Bahasa Anak",
+  "publisher": "Sahabat Bahasa",
+  "ageMin": 5,
+  "ageMax": 9,
+  "categories": ["Bahasa Arab", "Flashcard"],
+  "themes": ["kosakata", "benda harian", "belajar sambil bermain"],
+  "price": 72000,
+  "coverImage": "/images/covers/kartu-kata-arab-pertamaku.svg",
+  "shortDescription": "Kartu kosakata bahasa Arab untuk benda di rumah, sekolah, dan perlengkapan ibadah dengan desain bersih dan mudah dibaca.",
+  "reviewSummary": "Cukup ringan untuk pengenalan awal, terutama bila orang tua ingin membuat sesi belajar singkat lima sampai sepuluh menit.",
+  "parentNotes": "Mulai dari tiga kartu per sesi. Ulangi lewat permainan tebak benda di sekitar anak.",
+  "manhajNotes": "Konten bahasa bersifat dasar dan tidak memuat pembahasan agama yang membutuhkan penjelasan khusus.",
+  "stockType": "ready_stock",
+  "isActive": true,
+  "featured": false
+}

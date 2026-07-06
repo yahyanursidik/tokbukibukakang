@@ -1,0 +1,26 @@
+{
+  "title": "Doa Pendek untuk Keluarga",
+  "slug": "doa-pendek-untuk-keluarga",
+  "subtitle": "Bacaan harian dengan panduan makna sederhana",
+  "author": "Nadia Aulia",
+  "publisher": "Rumah Buku Amanah",
+  "ageMin": 5,
+  "ageMax": 10,
+  "categories": ["Doa", "Hafalan"],
+  "themes": ["doa harian", "makna", "pendampingan orang tua"],
+  "price": 92000,
+  "coverImage": "/images/covers/doa-pendek-untuk-keluarga.svg",
+  "shortDescription": "Kumpulan doa pendek untuk rutinitas keluarga, dilengkapi transliterasi dan penjelasan ringkas dalam bahasa anak.",
+  "reviewSummary": "Strukturnya rapi untuk keluarga yang ingin memulai kebiasaan doa harian tanpa membuat anak terburu-buru.",
+  "parentNotes": "Pilih satu doa setiap pekan dan ulangi dalam momen yang sesuai, bukan hanya saat duduk belajar.",
+  "manhajNotes": "Doa dipilih dari lafaz yang masyhur dan disajikan dengan catatan agar orang tua tetap merujuk sumber terpercaya.",
+  "stockType": "preorder",
+  "isActive": true,
+  "featured": true,
+  "externalReviewSources": [
+    {
+      "sourceName": "Catatan ringkas komunitas membaca keluarga",
+      "sourceUrl": "https://example.com/resensi-doa-pendek"
+    }
+  ]
+}

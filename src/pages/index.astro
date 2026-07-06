@@ -1,0 +1,392 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { siteConfig } from '@/config/site';
+import { getCollection } from 'astro:content';
+
+const books = (await getCollection('books'))
+  .filter((book) => book.data.isActive)
+  .sort((a, b) => Number(b.data.featured) - Number(a.data.featured));
+const featuredBooks = books.filter((book) => book.data.featured).slice(0, 3);
+const reviews = (await getCollection('reviews')).slice(0, 3);
+const poPeriods = await getCollection('poPeriods');
+const activePo = poPeriods
+  .filter((period) => period.data.status === 'open')
+  .sort((a, b) => a.data.endDate.getTime() - b.data.endDate.getTime())[0];
+const activePoBooks = activePo
+  ? books.filter((book) => activePo.data.bookSlugs.includes(book.data.slug)).slice(0, 3)
+  : [];
+
+const poHref = activePo ? `/po/${activePo.data.slug}` : '/po';
+
+const formatDate = new Intl.DateTimeFormat('id-ID', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'
+});
+
+const formatPrice = new Intl.NumberFormat('id-ID', {
+  style: 'currency',
+  currency: 'IDR',
+  maximumFractionDigits: 0
+});
+
+const reasons = [
+  {
+    title: 'Buku terkurasi',
+    description: 'Pilihan bacaan disaring agar sesuai untuk keluarga Muslim yang ingin tumbuh pelan, rapi, dan bermakna.'
+  },
+  {
+    title: 'Panduan usia',
+    description: 'Setiap buku diberi rentang usia agar orang tua lebih mudah memilih sesuai tahap anak.'
+  },
+  {
+    title: 'Resensi hangat',
+    description: 'Ringkasan dan catatan orang tua ditulis dengan bahasa yang tenang, bukan sekadar daftar kelebihan.'
+  },
+  {
+    title: 'PO transparan',
+    description: 'Periode, estimasi pengiriman, dan catatan PO ditampilkan jelas sejak awal.'
+  },
+  {
+    title: 'Kurasi ramah keluarga',
+    description: 'Konten dipilih dengan perhatian pada adab, manfaat, dan kenyamanan keluarga Muslim.'
+  }
+];
+
+const preorderSteps = [
+  'Pilih buku',
+  'Masukkan keranjang',
+  'Checkout manual',
+  'Transfer',
+  'Konfirmasi pembayaran',
+  'Admin kirim invoice/update via WhatsApp'
+];
+---
+
+<BaseLayout
+  title={siteConfig.name}
+  description="Ibu Kakang BookStore membantu orang tua Muslim memilih bacaan anak Islami yang lembut, terkurasi, dan ramah keluarga."
+>
+  <section class="page-shell grid gap-8 py-10 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+    <div>
+      <p class="mb-4 inline-flex rounded-full border border-date/20 bg-white/60 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-date">
+        {siteConfig.name}
+      </p>
+      <h1 class="max-w-3xl font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl lg:text-6xl">
+        Bacaan Baik untuk Tumbuh dengan Adab
+      </h1>
+      <p class="mt-5 max-w-2xl text-base text-[#5f564e] sm:text-lg">
+        Teman orang tua Muslim dalam memilih buku anak Islami yang lembut, jelas panduan usianya, dan nyaman dibaca bersama di rumah.
+      </p>
+      <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+        <a class="inline-flex items-center justify-center rounded-full bg-ink px-6 py-3 text-sm font-bold text-cream shadow-soft transition hover:-translate-y-0.5 hover:bg-date" href={poHref}>
+          Lihat Buku PO
+        </a>
+        <a class="inline-flex items-center justify-center rounded-full border border-date/25 bg-white/70 px-6 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href="/resensi">
+          Baca Resensi
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-visual soft-card p-6" aria-hidden="true">
+      <div class="shelf">
+        <span class="book book-sky"></span>
+        <span class="book book-honey"></span>
+        <span class="book book-rose"></span>
+        <span class="bookmark"></span>
+      </div>
+      <div class="paper-stack">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="leaf-shape"></div>
+      <div class="flower-shape"></div>
+    </div>
+  </section>
+
+  <section class="page-shell">
+    {
+      activePo ? (
+        <article class="watercolor-panel p-6 sm:p-8">
+          <div class="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">PO sedang dibuka</p>
+              <h2 class="mt-2 font-serif text-3xl font-bold text-ink">{activePo.data.title}</h2>
+              <p class="mt-3 max-w-3xl text-[#5f564e]">{activePo.data.description}</p>
+              <dl class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+                <div class="rounded-2xl bg-white/60 p-4">
+                  <dt class="font-bold text-date">Tutup PO</dt>
+                  <dd class="mt-1 text-ink">{formatDate.format(activePo.data.endDate)}</dd>
+                </div>
+                <div class="rounded-2xl bg-white/60 p-4">
+                  <dt class="font-bold text-date">Estimasi kirim</dt>
+                  <dd class="mt-1 text-ink">{formatDate.format(activePo.data.estimatedShippingDate)}</dd>
+                </div>
+              </dl>
+              {activePoBooks.length > 0 && (
+                <p class="mt-4 text-sm text-[#70675e]">
+                  Buku PO: {activePoBooks.map((book) => book.data.title).join(', ')}
+                </p>
+              )}
+            </div>
+            <a class="inline-flex items-center justify-center rounded-full bg-date px-6 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-ink" href={poHref}>
+              Lihat Detail PO
+            </a>
+          </div>
+        </article>
+      ) : (
+        <article class="soft-card p-6 sm:p-8">
+          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">PO</p>
+          <h2 class="mt-2 font-serif text-3xl font-bold text-ink">Belum ada PO aktif saat ini.</h2>
+          <p class="mt-3 text-[#5f564e]">Silakan cek katalog buku ready stock atau pantau halaman PO untuk periode berikutnya.</p>
+        </article>
+      )
+    }
+  </section>
+
+  <section class="page-shell py-14">
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Pilihan keluarga</p>
+        <h2 class="font-serif text-3xl font-bold text-ink">Buku unggulan</h2>
+      </div>
+      <a class="text-sm font-bold text-date hover:text-ink" href="/buku">Lihat semua buku</a>
+    </div>
+    <div class="grid gap-4 md:grid-cols-3">
+      {
+        featuredBooks.map(({ data }) => (
+          <article class="soft-card flex flex-col gap-4 p-5">
+            <div class="cover-object" aria-hidden="true">
+              <span></span>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">
+                {data.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}
+              </p>
+              <h3 class="mt-2 font-serif text-xl font-bold leading-tight text-ink">{data.title}</h3>
+              <p class="mt-3 text-sm text-[#70675e]">{data.shortDescription}</p>
+            </div>
+            <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#eadcc7] pt-4 text-sm">
+              <span class="font-semibold text-[#5f564e]">Usia {data.ageMin}-{data.ageMax}</span>
+              <span class="font-bold text-ink">{formatPrice.format(data.price)}</span>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="bg-white/38 py-14">
+    <div class="page-shell">
+      <div class="mb-6 max-w-2xl">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Kenapa dipilih orang tua</p>
+        <h2 class="font-serif text-3xl font-bold text-ink">Kurasi yang hangat, jelas, dan tidak tergesa-gesa</h2>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        {
+          reasons.map((reason, index) => (
+            <article class="soft-card p-5">
+              <div class="mb-4 grid h-10 w-10 place-items-center rounded-2xl bg-parchment text-sm font-bold text-date">
+                {index + 1}
+              </div>
+              <h3 class="font-serif text-lg font-bold text-ink">{reason.title}</h3>
+              <p class="mt-2 text-sm text-[#70675e]">{reason.description}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="page-shell py-14">
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Catatan bacaan</p>
+        <h2 class="font-serif text-3xl font-bold text-ink">Resensi pilihan</h2>
+      </div>
+      <a class="text-sm font-bold text-date hover:text-ink" href="/resensi">Buka resensi</a>
+    </div>
+    <div class="grid gap-4 lg:grid-cols-3">
+      {
+        reviews.map(({ data }) => (
+          <article class="soft-card p-5">
+            <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">
+              {data.sourceType === 'original' ? 'Original' : 'Ringkasan'}
+            </p>
+            <h3 class="mt-3 font-serif text-xl font-bold leading-tight text-ink">{data.title}</h3>
+            <p class="mt-3 text-sm text-[#70675e]">{data.summary}</p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="page-shell pb-14">
+    <div class="watercolor-panel p-6 sm:p-8">
+      <div class="mb-7 max-w-2xl">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Cara pre-order</p>
+        <h2 class="font-serif text-3xl font-bold text-ink">Alur manual yang mudah diikuti</h2>
+      </div>
+      <ol class="grid gap-3 md:grid-cols-3">
+        {
+          preorderSteps.map((step, index) => (
+            <li class="rounded-3xl border border-date/15 bg-white/62 p-4">
+              <span class="text-xs font-bold uppercase tracking-[0.14em] text-date">Langkah {index + 1}</span>
+              <p class="mt-2 font-serif text-lg font-bold text-ink">{step}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="page-shell pb-16">
+    <div class="soft-card grid gap-5 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-center">
+      <div>
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Butuh dibantu memilih?</p>
+        <h2 class="font-serif text-3xl font-bold text-ink">Tanya admin dengan tenang</h2>
+        <p class="mt-3 max-w-2xl text-[#70675e]">
+          Kirim pesan WhatsApp untuk bertanya stok, rentang usia, atau rekomendasi bacaan yang sesuai kebutuhan keluarga.
+        </p>
+      </div>
+      <a class="inline-flex items-center justify-center rounded-full bg-mint px-6 py-3 text-sm font-bold text-[#36543c] transition hover:-translate-y-0.5 hover:bg-honey" href="https://wa.me/6200000000000">
+        WhatsApp Admin
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero-visual {
+    min-height: 360px;
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(140deg, rgba(255, 252, 246, 0.9), rgba(248, 236, 215, 0.78)),
+      radial-gradient(circle at 80% 15%, rgba(242, 202, 126, 0.32), transparent 28%);
+  }
+
+  .shelf {
+    position: absolute;
+    left: 10%;
+    right: 12%;
+    bottom: 72px;
+    height: 124px;
+    border-bottom: 12px solid rgba(138, 95, 63, 0.35);
+  }
+
+  .book {
+    position: absolute;
+    bottom: 12px;
+    width: 58px;
+    border: 2px solid rgba(138, 95, 63, 0.62);
+    border-radius: 12px 12px 6px 6px;
+    box-shadow: inset 0 14px 0 rgba(255, 255, 255, 0.32);
+  }
+
+  .book-sky {
+    left: 12%;
+    height: 112px;
+    background: #b8dce8;
+    transform: rotate(-5deg);
+  }
+
+  .book-honey {
+    left: 34%;
+    height: 94px;
+    background: #f2ca7e;
+  }
+
+  .book-rose {
+    left: 55%;
+    height: 104px;
+    background: #eeb7ad;
+    transform: rotate(4deg);
+  }
+
+  .bookmark {
+    position: absolute;
+    right: 10%;
+    bottom: 18px;
+    width: 42px;
+    height: 110px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+    background: #b9d8c2;
+    border: 2px solid rgba(138, 95, 63, 0.5);
+  }
+
+  .paper-stack {
+    position: absolute;
+    top: 34px;
+    right: 34px;
+    width: 138px;
+    height: 104px;
+  }
+
+  .paper-stack span {
+    position: absolute;
+    inset: 0;
+    border: 2px solid rgba(138, 95, 63, 0.42);
+    border-radius: 18px;
+    background: rgba(255, 250, 241, 0.86);
+  }
+
+  .paper-stack span:nth-child(2) {
+    transform: translate(-14px, 14px) rotate(-4deg);
+    background: rgba(184, 220, 232, 0.62);
+  }
+
+  .paper-stack span:nth-child(3) {
+    transform: translate(-28px, 28px) rotate(-8deg);
+    background: rgba(238, 183, 173, 0.5);
+  }
+
+  .leaf-shape,
+  .flower-shape {
+    position: absolute;
+    border: 2px solid rgba(138, 95, 63, 0.42);
+  }
+
+  .leaf-shape {
+    left: 34px;
+    top: 44px;
+    width: 86px;
+    height: 54px;
+    border-radius: 70% 18% 70% 18%;
+    background: rgba(185, 216, 194, 0.72);
+    transform: rotate(-24deg);
+  }
+
+  .flower-shape {
+    right: 72px;
+    bottom: 34px;
+    width: 70px;
+    height: 70px;
+    border-radius: 44% 56% 42% 58%;
+    background: rgba(238, 183, 173, 0.7);
+    box-shadow: 22px 10px 0 -10px rgba(242, 202, 126, 0.82);
+    transform: rotate(16deg);
+  }
+
+  .cover-object {
+    position: relative;
+    display: grid;
+    min-height: 142px;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 24px;
+    background:
+      linear-gradient(135deg, rgba(184, 220, 232, 0.54), rgba(248, 236, 215, 0.78)),
+      repeating-linear-gradient(90deg, rgba(138, 95, 63, 0.08) 0 1px, transparent 1px 18px);
+  }
+
+  .cover-object span {
+    width: 72px;
+    height: 92px;
+    border: 2px solid rgba(138, 95, 63, 0.58);
+    border-radius: 12px 6px 6px 12px;
+    background: #fff8ef;
+    box-shadow: 34px 0 0 #f2ca7e;
+  }
+</style>

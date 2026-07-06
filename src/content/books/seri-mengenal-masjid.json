@@ -1,0 +1,20 @@
+{
+  "title": "Seri Mengenal Masjid",
+  "slug": "seri-mengenal-masjid",
+  "subtitle": "Ruang ibadah, adab, dan kebersamaan",
+  "author": "Hanif Rahman",
+  "publisher": "Lentera Kecil",
+  "ageMin": 4,
+  "ageMax": 9,
+  "categories": ["Akidah", "Ensiklopedia Anak"],
+  "themes": ["masjid", "ibadah", "komunitas"],
+  "price": 85000,
+  "coverImage": "/images/covers/seri-mengenal-masjid.svg",
+  "shortDescription": "Pengenalan fungsi masjid melalui ilustrasi benda, ruang, dan kegiatan ibadah tanpa figur makhluk hidup.",
+  "reviewSummary": "Bahasanya sederhana dan membantu anak memahami mengapa masjid dijaga dengan adab yang baik.",
+  "parentNotes": "Bagus dibaca sebelum mengajak anak ke masjid agar ekspektasi dan aturan dasarnya terasa akrab.",
+  "manhajNotes": "Materi fokus pada adab dan fungsi masjid secara umum, tidak masuk ke perbedaan tata cara ibadah.",
+  "stockType": "ready_stock",
+  "isActive": true,
+  "featured": false
+}

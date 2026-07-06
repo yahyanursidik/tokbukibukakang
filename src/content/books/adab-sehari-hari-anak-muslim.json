@@ -1,0 +1,20 @@
+{
+  "title": "Adab Sehari-hari Anak Muslim",
+  "slug": "adab-sehari-hari-anak-muslim",
+  "subtitle": "Kebiasaan lembut dari bangun tidur sampai waktu istirahat",
+  "author": "Tim Ibu Kakang",
+  "publisher": "Pustaka Keluarga Tumbuh",
+  "ageMin": 4,
+  "ageMax": 8,
+  "categories": ["Adab", "Buku Aktivitas"],
+  "themes": ["rutinitas harian", "akhlak", "keluarga"],
+  "price": 78000,
+  "coverImage": "/images/covers/adab-sehari-hari-anak-muslim.svg",
+  "shortDescription": "Buku pengantar adab harian dengan kalimat pendek, contoh yang dekat dengan rumah, dan ruang obrolan untuk orang tua.",
+  "reviewSummary": "Cocok sebagai bacaan pendamping sebelum anak mulai menghafal daftar aturan. Isinya menekankan kebiasaan baik dengan nada lembut.",
+  "parentNotes": "Bisa dibaca bertahap satu tema per hari agar anak tidak merasa sedang dinasihati panjang.",
+  "manhajNotes": "Mengutamakan adab umum yang dikenal luas dan menghindari pembahasan khilaf yang berat untuk usia dini.",
+  "stockType": "ready_stock",
+  "isActive": true,
+  "featured": true
+}

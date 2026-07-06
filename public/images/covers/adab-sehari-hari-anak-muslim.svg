@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Sampul Adab Sehari-hari Anak Muslim</title>
+  <desc id="desc">Placeholder sampul dengan motif buku, kertas, dan bentuk geometris.</desc>
+  <rect width="640" height="480" fill="#fff8ef"/>
+  <rect x="54" y="42" width="532" height="396" rx="42" fill="#f8ecd7" stroke="#8a5f3f" stroke-opacity=".32" stroke-width="4"/>
+  <circle cx="518" cy="96" r="48" fill="#f2ca7e" opacity=".7"/>
+  <path d="M116 122h150a28 28 0 0 1 28 28v224H144a28 28 0 0 1-28-28z" fill="#b8dce8" stroke="#8a5f3f" stroke-width="5"/>
+  <path d="M294 150a28 28 0 0 1 28-28h150v224a28 28 0 0 1-28 28H294z" fill="#eeb7ad" stroke="#8a5f3f" stroke-width="5"/>
+  <path d="M294 148v228" stroke="#8a5f3f" stroke-width="4" stroke-dasharray="12 12" opacity=".55"/>
+  <rect x="158" y="182" width="94" height="16" rx="8" fill="#fff8ef" opacity=".8"/>
+  <rect x="354" y="182" width="76" height="16" rx="8" fill="#fff8ef" opacity=".8"/>
+  <path d="M486 264c42 14 60 50 54 100-50-6-86-30-96-72z" fill="#b9d8c2" stroke="#6d8f70" stroke-width="4"/>
+</svg>

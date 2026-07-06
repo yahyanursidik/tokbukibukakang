@@ -1,0 +1,13 @@
+---
+import PlaceholderPage from '@/components/PlaceholderPage.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { placeholderPages } from '@/config/site';
+import { getCollection } from 'astro:content';
+
+const page = placeholderPages.about;
+const pageMeta = (await getCollection('pages')).find((entry) => entry.data.slug === 'tentang')?.data;
+---
+
+<BaseLayout title={pageMeta?.seoTitle ?? 'Tentang'} description={pageMeta?.seoDescription ?? page.description}>
+  <PlaceholderPage {...page} />
+</BaseLayout>

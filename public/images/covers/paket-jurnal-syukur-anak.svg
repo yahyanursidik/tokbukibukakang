@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Sampul Paket Jurnal Syukur Anak</title>
+  <desc id="desc">Placeholder sampul dengan motif jurnal, kertas, dan bunga geometris.</desc>
+  <rect width="640" height="480" fill="#fff8ef"/>
+  <rect x="118" y="70" width="326" height="338" rx="30" fill="#fffaf1" stroke="#8a5f3f" stroke-width="5"/>
+  <path d="M166 70v338" stroke="#8a5f3f" stroke-width="5" opacity=".45"/>
+  <rect x="210" y="142" width="168" height="16" rx="8" fill="#eeb7ad" opacity=".8"/>
+  <rect x="210" y="200" width="190" height="16" rx="8" fill="#b8dce8" opacity=".8"/>
+  <rect x="210" y="258" width="142" height="16" rx="8" fill="#f2ca7e" opacity=".8"/>
+  <path d="M488 140c30 20 36 56 18 88-34-10-56-34-56-70z" fill="#b9d8c2" stroke="#6d8f70" stroke-width="4"/>
+  <path d="M470 302c22-30 62-30 84 0-22 30-62 30-84 0z" fill="#eeb7ad" stroke="#8a5f3f" stroke-opacity=".42" stroke-width="4"/>
+  <circle cx="512" cy="302" r="18" fill="#f2ca7e"/>
+</svg>

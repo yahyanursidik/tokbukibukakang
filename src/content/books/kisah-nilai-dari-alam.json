@@ -1,0 +1,20 @@
+{
+  "title": "Kisah Nilai dari Alam",
+  "slug": "kisah-nilai-dari-alam",
+  "subtitle": "Mengamati ciptaan Allah melalui daun, hujan, dan tanah",
+  "author": "Aisyah Lestari",
+  "publisher": "Taman Ilmu Anak",
+  "ageMin": 6,
+  "ageMax": 11,
+  "categories": ["Sains Islami", "Bacaan Keluarga"],
+  "themes": ["tadabbur", "alam", "rasa syukur"],
+  "price": 99000,
+  "coverImage": "/images/covers/kisah-nilai-dari-alam.svg",
+  "shortDescription": "Bacaan reflektif tentang alam yang mengajak anak memperhatikan tanda kebesaran Allah melalui benda dan peristiwa sehari-hari.",
+  "reviewSummary": "Nada tulisannya tenang, cocok untuk keluarga yang menyukai percakapan setelah membaca.",
+  "parentNotes": "Ajak anak mengamati daun, air, atau tanah setelah membaca agar pesan buku terasa konkret.",
+  "manhajNotes": "Menghubungkan pengamatan alam dengan tauhid rububiyah secara ringan dan aman untuk diskusi keluarga.",
+  "stockType": "preorder",
+  "isActive": true,
+  "featured": false
+}

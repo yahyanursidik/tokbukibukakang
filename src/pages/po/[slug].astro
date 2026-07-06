@@ -1,0 +1,67 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const poPeriods = await getCollection('poPeriods');
+
+  return poPeriods.map((period) => ({
+    params: { slug: period.data.slug },
+    props: { period }
+  }));
+}
+
+const { period } = Astro.props;
+const books = await getCollection('books');
+const poBooks = books.filter((book) => period.data.bookSlugs.includes(book.data.slug));
+
+const formatDate = new Intl.DateTimeFormat('id-ID', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'
+});
+---
+
+<BaseLayout title={period.data.title} description={period.data.description}>
+  <section class="page-shell py-12 sm:py-16">
+    <article class="watercolor-panel p-6 sm:p-8 lg:p-10">
+      <a class="text-sm font-bold text-date hover:text-ink" href="/po">Kembali ke PO</a>
+      <p class="mt-6 text-sm font-bold uppercase tracking-[0.14em] text-date">Detail pre-order</p>
+      <h1 class="mt-2 font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl">{period.data.title}</h1>
+      <p class="mt-4 max-w-3xl text-[#5f564e]">{period.data.description}</p>
+      <dl class="mt-7 grid gap-3 text-sm sm:grid-cols-3">
+        <div class="rounded-2xl bg-white/62 p-4">
+          <dt class="font-bold text-date">Mulai</dt>
+          <dd class="mt-1 text-ink">{formatDate.format(period.data.startDate)}</dd>
+        </div>
+        <div class="rounded-2xl bg-white/62 p-4">
+          <dt class="font-bold text-date">Tutup</dt>
+          <dd class="mt-1 text-ink">{formatDate.format(period.data.endDate)}</dd>
+        </div>
+        <div class="rounded-2xl bg-white/62 p-4">
+          <dt class="font-bold text-date">Estimasi kirim</dt>
+          <dd class="mt-1 text-ink">{formatDate.format(period.data.estimatedShippingDate)}</dd>
+        </div>
+      </dl>
+      {period.data.notes && <p class="mt-5 rounded-2xl bg-white/62 p-4 text-sm font-medium text-[#5f564e]">{period.data.notes}</p>}
+    </article>
+
+    <section class="mt-8">
+      <div class="mb-5">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Buku dalam PO</p>
+        <h2 class="font-serif text-3xl font-bold text-ink">Daftar pilihan</h2>
+      </div>
+      <div class="grid gap-4 md:grid-cols-3">
+        {
+          poBooks.map(({ data }) => (
+            <article class="soft-card p-5">
+              <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">Usia {data.ageMin}-{data.ageMax}</p>
+              <h3 class="mt-2 font-serif text-xl font-bold leading-tight text-ink">{data.title}</h3>
+              <p class="mt-3 text-sm text-[#70675e]">{data.shortDescription}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+  </section>
+</BaseLayout>

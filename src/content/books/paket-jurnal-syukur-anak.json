@@ -1,0 +1,19 @@
+{
+  "title": "Paket Jurnal Syukur Anak",
+  "slug": "paket-jurnal-syukur-anak",
+  "subtitle": "Lembar tulis, stiker bentuk, dan panduan obrolan",
+  "publisher": "Ibu Kakang BookStore",
+  "ageMin": 7,
+  "ageMax": 12,
+  "categories": ["Jurnal", "Aktivitas"],
+  "themes": ["syukur", "menulis", "refleksi"],
+  "price": 65000,
+  "coverImage": "/images/covers/paket-jurnal-syukur-anak.svg",
+  "shortDescription": "Paket aktivitas untuk membantu anak menulis nikmat harian dengan pertanyaan pendek dan motif geometris yang lembut.",
+  "reviewSummary": "Bukan buku cerita, tetapi alat bantu yang praktis untuk rutinitas refleksi keluarga.",
+  "parentNotes": "Gunakan tanpa tuntutan harus rapi. Yang penting anak mulai mengenali nikmat kecil di sekitarnya.",
+  "manhajNotes": "Materi diarahkan pada rasa syukur dan adab mengingat nikmat, tanpa klaim dalil yang berlebihan.",
+  "stockType": "ready_stock",
+  "isActive": true,
+  "featured": true
+}
