@@ -89,7 +89,7 @@ export const contentCollections: Record<ContentCollectionKey, CollectionConfig> 
       { name: 'short_description', label: 'Deskripsi singkat', type: 'textarea', required: true, placeholder: 'Ringkas isi/manfaat buku dalam 1-2 kalimat.' },
       { name: 'review_summary', label: 'Ringkasan resensi', type: 'textarea', required: true, placeholder: 'Soroti kelebihan buku dan situasi baca yang cocok.' },
       { name: 'parent_notes', label: 'Catatan orang tua', type: 'textarea', required: true, placeholder: 'Arahan praktis untuk orang tua saat mendampingi anak.' },
-      { name: 'manhaj_notes', label: 'Catatan kesesuaian manhaj', type: 'textarea', required: true, placeholder: 'Catatan kehati-hatian isi, adab, dalil, atau batasan penggunaan buku.' },
+      { name: 'manhaj_notes', label: 'Catatan dari Books by Ibunya Kakang', type: 'textarea', required: true, placeholder: 'Catatan kurasi, kehati-hatian isi, adab, atau arahan penggunaan buku.' },
       {
         name: 'stock_type',
         label: 'Tipe stok',
