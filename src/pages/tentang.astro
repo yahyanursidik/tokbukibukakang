@@ -1,15 +1,160 @@
 ---
-import PlaceholderPage from '@/components/PlaceholderPage.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import { placeholderPages } from '@/config/site';
+import { siteConfig } from '@/config/site';
 import { getPublicPageBySlug } from '@/lib/content/public';
 
 export const prerender = false;
 
-const page = placeholderPages.about;
 const pageMeta = await getPublicPageBySlug('tentang');
+
+const values = [
+  {
+    title: 'Aman untuk dibacakan pelan-pelan',
+    description:
+      'Kami memilih buku yang bahasanya lembut, temanya dekat dengan keseharian anak, dan mudah dijadikan bahan obrolan keluarga.'
+  },
+  {
+    title: 'Dikurasi dengan kehati-hatian',
+    description:
+      'Setiap buku dilihat dari isi cerita, gambar, adab, pesan utama, dan catatan yang perlu diketahui orang tua sebelum membeli.'
+  },
+  {
+    title: 'Belanja dibuat tenang',
+    description:
+      'Informasi harga, PO, invoice, pembayaran, dan konfirmasi dibuat jelas agar orang tua tidak perlu menebak-nebak prosesnya.'
+  }
+];
+
+const curationNotes = [
+  'Kesesuaian tema dengan usia dan kebutuhan anak.',
+  'Bahasa yang mudah dipahami tanpa kehilangan adab.',
+  'Ilustrasi dan isi yang lebih nyaman untuk keluarga muslim.',
+  'Manfaat buku saat dibacakan, didiskusikan, atau dijadikan hadiah.',
+  'Catatan khusus dari Books by Ibunya Kakang bila ada bagian yang perlu pendampingan.'
+];
+
+const services = [
+  'Katalog buku anak Islami dan keluarga.',
+  'Informasi pre-order buku yang sedang dibuka.',
+  'Ringkasan resensi dan catatan untuk orang tua.',
+  'Invoice manual dan konfirmasi pembayaran via WhatsApp.',
+  'Bantuan memilih buku sesuai usia, tema, atau kebutuhan hadiah.'
+];
 ---
 
-<BaseLayout title={pageMeta?.seoTitle ?? 'Tentang'} description={pageMeta?.seoDescription ?? page.description}>
-  <PlaceholderPage {...page} />
+<BaseLayout
+  title={pageMeta?.seoTitle ?? 'Tentang Books by Ibunya Kakang'}
+  description={pageMeta?.seoDescription ?? 'Kenali Books by Ibunya Kakang dan cara kami memilih bacaan anak Islami untuk keluarga.'}
+>
+  <section class="page-shell py-12 sm:py-16">
+    <div class="watercolor-panel overflow-hidden p-0">
+      <div class="grid items-center gap-0 lg:grid-cols-[1.05fr_0.95fr]">
+        <div class="p-6 sm:p-8 lg:p-12">
+          <p class="mb-4 inline-flex rounded-full border border-date/20 bg-white/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-date">
+            Tentang Books by Ibunya Kakang
+          </p>
+          <h1 class="max-w-3xl font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl">
+            Teman memilih bacaan Islami yang hangat untuk keluarga.
+          </h1>
+          <p class="mt-5 max-w-2xl text-base leading-8 text-[#5f564e] sm:text-lg">
+            Books by Ibunya Kakang hadir dari kebutuhan sederhana: orang tua ingin mencarikan buku yang baik, nyaman dibacakan, dan punya catatan yang jelas sebelum dibawa pulang ke rumah.
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a class="button-primary bg-[#36543c] hover:bg-date" href="/buku">Lihat katalog</a>
+            <a
+              class="button-secondary"
+              href={`${siteConfig.whatsappUrl}?text=${encodeURIComponent("Assalamu'alaikum, saya ingin bertanya tentang rekomendasi buku di Books by Ibunya Kakang.")}`}
+            >
+              Tanya Ibu Kakang
+            </a>
+          </div>
+        </div>
+        <figure class="relative min-h-[320px] overflow-hidden bg-parchment/75">
+          <img
+            class="h-full min-h-[320px] w-full object-cover object-center"
+            src="/images/hero-muslimah-reading.png"
+            alt="Ilustrasi ibu muslimah membacakan buku kepada anak-anak"
+            loading="eager"
+          />
+          <figcaption class="absolute bottom-4 left-4 right-4 rounded-3xl border border-white/70 bg-white/80 p-4 text-sm font-semibold leading-6 text-[#5f564e] shadow-soft backdrop-blur">
+            Bismillah, setiap rekomendasi kami usahakan membantu orang tua memilih bacaan dengan lebih tenang.
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-3">
+      {values.map((item) => (
+        <article class="soft-card p-5">
+          <p class="font-serif text-xl font-bold text-ink">{item.title}</p>
+          <p class="mt-3 text-sm leading-7 text-[#70675e]">{item.description}</p>
+        </article>
+      ))}
+    </div>
+
+    <section class="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+      <div class="soft-card p-6 sm:p-7">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Cerita kami</p>
+        <h2 class="mt-3 font-serif text-3xl font-bold text-ink">Dimulai dari rak buku keluarga.</h2>
+        <div class="mt-4 space-y-4 text-sm leading-7 text-[#5f564e] sm:text-base sm:leading-8">
+          <p>
+            Ada buku yang membuat anak betah mendengar cerita. Ada juga buku yang perlu orang tua cek lebih dahulu: bahasanya, gambarnya, pesannya, dan cara menyampaikannya.
+          </p>
+          <p>
+            Dari pengalaman itulah Books by Ibunya Kakang disusun sebagai tempat kecil untuk berbagi pilihan buku, catatan bacaan, dan informasi PO yang lebih rapi. Bukan sekadar menjual buku, tetapi membantu keluarga memilih dengan pertimbangan yang lebih jelas.
+          </p>
+        </div>
+      </div>
+
+      <div class="soft-card p-6 sm:p-7">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Cara kami memilih</p>
+        <h2 class="mt-3 font-serif text-3xl font-bold text-ink">Yang kami perhatikan sebelum merekomendasikan buku.</h2>
+        <ul class="mt-5 grid gap-3">
+          {curationNotes.map((note) => (
+            <li class="flex gap-3 rounded-2xl bg-parchment/70 p-4 text-sm leading-6 text-[#5f564e]">
+              <span class="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#36543c] text-[0.65rem] font-bold text-white">OK</span>
+              <span>{note}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="mt-8 rounded-[28px] border border-[#eadcc7] bg-white/72 p-6 shadow-soft sm:p-7">
+      <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+        <div>
+          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Yang tersedia</p>
+          <h2 class="mt-3 font-serif text-3xl font-bold text-ink">Dari katalog sampai invoice, dibuat manual dan jelas.</h2>
+          <p class="mt-4 text-sm leading-7 text-[#70675e] sm:text-base sm:leading-8">
+            Proses belanja di Books by Ibunya Kakang tetap dekat dan manusiawi. Admin membantu melalui WhatsApp, sementara website dipakai untuk melihat buku, mengikuti PO, membuat pesanan, dan membaca instruksi pembayaran.
+          </p>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+          {services.map((service) => (
+            <div class="rounded-2xl border border-[#eadcc7] bg-parchment/55 p-4 text-sm font-semibold leading-6 text-[#5f564e]">
+              {service}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-8 overflow-hidden rounded-[28px] bg-ink p-6 text-cream shadow-soft sm:p-8">
+      <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <p class="text-sm font-bold uppercase tracking-[0.14em] text-honey">Butuh rekomendasi?</p>
+          <h2 class="mt-3 font-serif text-3xl font-bold">Ceritakan usia anak dan tema buku yang sedang dicari.</h2>
+          <p class="mt-3 max-w-2xl text-sm leading-7 text-cream/78">
+            Insya Allah Ibu Kakang bantu arahkan pilihan buku yang sesuai, baik untuk bacaan harian, hadiah, atau ikut periode pre-order.
+          </p>
+        </div>
+        <a
+          class="inline-flex items-center justify-center rounded-full bg-cream px-6 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-honey"
+          href={`${siteConfig.whatsappUrl}?text=${encodeURIComponent("Assalamu'alaikum, saya ingin dibantu memilih buku anak.")}`}
+        >
+          Chat WhatsApp
+        </a>
+      </div>
+    </section>
+  </section>
 </BaseLayout>
