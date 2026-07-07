@@ -41,6 +41,37 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
   month: 'long',
   year: 'numeric'
 });
+
+const readingNotes = [
+  {
+    label: 'Deskripsi',
+    title: 'Gambaran singkat buku',
+    body: data.shortDescription,
+    helper: 'Ringkasan cepat untuk memahami isi dan manfaat utama buku.',
+    marker: '01'
+  },
+  {
+    label: 'Ringkasan resensi',
+    title: 'Kesan bacaan',
+    body: data.reviewSummary,
+    helper: 'Catatan kurasi agar orang tua mendapat gambaran sebelum membeli.',
+    marker: '02'
+  },
+  {
+    label: 'Catatan untuk orang tua',
+    title: 'Pendampingan saat membaca',
+    body: data.parentNotes,
+    helper: 'Arahan praktis saat buku dibaca bersama anak di rumah.',
+    marker: '03'
+  },
+  {
+    label: 'Catatan kesesuaian manhaj',
+    title: 'Batasan dan kehati-hatian',
+    body: data.manhajNotes,
+    helper: 'Bagian ini mengikuti isi catatan yang diatur admin di form buku.',
+    marker: '04'
+  }
+].filter((section) => section.body);
 ---
 
 <BaseLayout title={data.title} description={data.shortDescription}>
@@ -177,48 +208,49 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
       )
     }
 
-    <section class="mt-8 grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-      <div class="grid gap-4">
-        <article class="soft-card p-6 sm:p-8">
-          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Deskripsi singkat</p>
-          <p class="mt-4 text-[#5f564e] sm:text-lg">{data.shortDescription}</p>
-        </article>
-
-        <article class="soft-card p-6 sm:p-8">
-          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Ringkasan resensi</p>
-          <p class="mt-4 text-[#5f564e] sm:text-lg">{data.reviewSummary}</p>
-        </article>
-
-        <article class="soft-card p-6 sm:p-8">
-          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Catatan untuk orang tua</p>
-          <p class="mt-4 text-[#5f564e] sm:text-lg">{data.parentNotes}</p>
-        </article>
+    <section class="mt-8">
+      <div class="mb-5 max-w-3xl">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Informasi buku</p>
+        <h2 class="font-serif text-3xl font-bold leading-tight text-ink">Catatan yang membantu orang tua memilih dengan tenang</h2>
       </div>
 
-      <aside class="grid gap-4">
-        <article class="soft-card p-6 sm:p-8">
-          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Catatan kurasi Books by Ibunya Kakang</p>
-          <p class="mt-4 text-[#5f564e]">
+      <div class="grid gap-4 lg:grid-cols-2">
+        {readingNotes.map((section) => (
+          <article class="soft-card overflow-hidden">
+            <div class="flex items-start gap-4 border-b border-[#eadcc7] bg-white/48 p-5 sm:p-6">
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-honey/70 text-sm font-bold text-date">
+                {section.marker}
+              </span>
+              <div class="min-w-0">
+                <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">{section.label}</p>
+                <h3 class="mt-1 font-serif text-2xl font-bold leading-tight text-ink">{section.title}</h3>
+                <p class="mt-2 text-sm leading-6 text-[#82766b]">{section.helper}</p>
+              </div>
+            </div>
+            <div class="p-5 sm:p-6">
+              <p class="whitespace-pre-line text-base leading-8 text-[#51483f] sm:text-lg">{section.body}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div class="mt-4 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+        <article class="rounded-3xl border border-date/15 bg-parchment/70 p-5 sm:p-6">
+          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Catatan kurasi</p>
+          <p class="mt-3 leading-7 text-[#5f564e]">
             Buku ini diposisikan sebagai bacaan keluarga yang dapat dibaca perlahan, ditemani percakapan, dan disesuaikan dengan kesiapan anak.
           </p>
         </article>
 
-        {data.manhajNotes && (
-          <article class="soft-card p-6 sm:p-8">
-            <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Catatan kesesuaian manhaj</p>
-            <p class="mt-4 text-[#5f564e]">{data.manhajNotes}</p>
-          </article>
-        )}
-
         {data.externalReviewSources && data.externalReviewSources.length > 0 && (
-          <article class="soft-card p-6 sm:p-8">
+          <article class="rounded-3xl border border-date/15 bg-white/70 p-5 sm:p-6">
             <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Sumber resensi eksternal</p>
-            <p class="mt-4 text-sm text-[#70675e]">
+            <p class="mt-3 text-sm leading-6 text-[#70675e]">
               Sumber berikut hanya dijadikan rujukan ringkas. Isi resensi tidak disalin penuh.
             </p>
-            <ul class="mt-4 grid gap-3">
+            <ul class="mt-4 grid gap-3 sm:grid-cols-2">
               {data.externalReviewSources.map((source) => (
-                <li class="rounded-2xl bg-white/62 p-4 text-sm">
+                <li class="rounded-2xl bg-parchment/65 p-4 text-sm">
                   {source.sourceUrl ? (
                     <a class="font-bold text-date hover:text-ink" href={source.sourceUrl} rel="noreferrer" target="_blank">
                       {source.sourceName}
@@ -231,7 +263,7 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
             </ul>
           </article>
         )}
-      </aside>
+      </div>
     </section>
 
     <section class="mt-10">

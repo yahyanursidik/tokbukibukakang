@@ -14,7 +14,7 @@ const activePo = poPeriods
   .filter((period) => period.status === 'open')
   .sort((a, b) => a.endDate.getTime() - b.endDate.getTime())[0];
 const activePoBooks = activePo
-  ? books.filter((book) => activePo.bookSlugs.includes(book.slug)).slice(0, 3)
+  ? books.filter((book) => activePo.bookSlugs.includes(book.slug))
   : [];
 
 const poHref = activePo ? `/po/${activePo.slug}` : '/po';
@@ -119,9 +119,27 @@ const preorderSteps = [
                 </div>
               </dl>
               {activePoBooks.length > 0 && (
-                <p class="mt-4 text-sm text-[#70675e]">
-                  Buku PO: {activePoBooks.map((book) => book.title).join(', ')}
-                </p>
+                <div class="mt-5">
+                  <p class="text-sm font-bold text-date">Buku yang ikut PO</p>
+                  <div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {activePoBooks.map((book) => (
+                      <a
+                        class="flex min-h-24 gap-3 rounded-2xl border border-date/15 bg-white/68 p-3 transition hover:-translate-y-0.5 hover:border-date/35 hover:bg-white"
+                        href={`/buku/${book.slug}`}
+                      >
+                        <span class="grid aspect-[3/4] w-16 shrink-0 place-items-center rounded-xl bg-parchment/80 p-1.5">
+                          <img class="h-full w-full object-contain" src={book.coverImage} alt={`Sampul ${book.title}`} loading="lazy" />
+                        </span>
+                        <span class="min-w-0 self-center">
+                          <span class="block text-xs font-bold uppercase tracking-[0.12em] text-date">
+                            {book.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}
+                          </span>
+                          <span class="mt-1 block font-serif text-base font-bold leading-snug text-ink">{book.title}</span>
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
             <a class="button-primary bg-date hover:bg-ink" href={poHref}>

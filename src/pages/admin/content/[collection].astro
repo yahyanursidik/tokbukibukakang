@@ -34,7 +34,7 @@ if (Astro.request.method === 'POST') {
   try {
     if (action === 'create') {
       await createContentRow(collection, await parseContentForm(collection, formData));
-      actionMessage = `${collection.singularLabel} berhasil ditambahkan.`;
+      actionMessage = `${collection.singularLabel} berhasil ditambahkan dan daftar sudah diperbarui.`;
     }
 
     if (action === 'delete') {
@@ -43,7 +43,7 @@ if (Astro.request.method === 'POST') {
         throw new Error('ID konten tidak ditemukan.');
       }
       await deleteContentRow(collection, id);
-      actionMessage = `${collection.singularLabel} berhasil dihapus.`;
+      actionMessage = `${collection.singularLabel} berhasil dihapus dan daftar sudah diperbarui.`;
     }
   } catch (error) {
     errorMessage = error instanceof Error ? error.message : 'Perubahan konten belum berhasil disimpan.';
@@ -218,6 +218,22 @@ const getFieldClass = (fieldName: string, isWideType = false) => [
         )
       ))}
       <div class="md:col-span-2">
+        {(actionMessage || errorMessage) && (
+          <div
+            class={`mb-4 rounded-3xl border p-4 text-sm font-bold ${
+              actionMessage
+                ? 'border-[#b9d8c2] bg-[#edf7ef] text-[#36543c]'
+                : 'border-date/25 bg-parchment/80 text-date'
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            <span class="block text-xs uppercase tracking-[0.14em] opacity-75">
+              {actionMessage ? 'Berhasil disimpan' : 'Belum tersimpan'}
+            </span>
+            <span class="mt-1 block leading-6">{actionMessage || errorMessage}</span>
+          </div>
+        )}
         <div class="mb-4 hidden rounded-3xl border border-[#b9d8c2] bg-[#edf7ef] p-4 text-sm font-bold text-[#36543c]" data-submit-feedback role="status" aria-live="polite">
           <div class="flex items-center justify-between gap-3">
             <span data-submit-message>Menyimpan...</span>

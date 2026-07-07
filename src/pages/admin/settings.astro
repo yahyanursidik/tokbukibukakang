@@ -18,7 +18,7 @@ if (Astro.request.method === 'POST') {
 
   try {
     await updatePaymentSettings(await parsePaymentSettingsForm(formData));
-    actionMessage = 'Pengaturan invoice dan pembayaran berhasil disimpan.';
+    actionMessage = 'Pengaturan invoice dan pembayaran berhasil disimpan dan siap dipakai di invoice.';
   } catch (error) {
     errorMessage = error instanceof Error ? error.message : 'Pengaturan belum berhasil disimpan.';
   }
@@ -111,6 +111,22 @@ try {
       </label>
 
       <div>
+        {(actionMessage || errorMessage) && (
+          <div
+            class={`mb-4 rounded-3xl border p-4 text-sm font-bold ${
+              actionMessage
+                ? 'border-[#b9d8c2] bg-[#edf7ef] text-[#36543c]'
+                : 'border-date/25 bg-parchment/80 text-date'
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            <span class="block text-xs uppercase tracking-[0.14em] opacity-75">
+              {actionMessage ? 'Pengaturan tersimpan' : 'Belum tersimpan'}
+            </span>
+            <span class="mt-1 block leading-6">{actionMessage || errorMessage}</span>
+          </div>
+        )}
         <div class="mb-4 hidden rounded-3xl border border-[#b9d8c2] bg-[#edf7ef] p-4 text-sm font-bold text-[#36543c]" data-submit-feedback role="status" aria-live="polite">
           <div class="flex items-center justify-between gap-3">
             <span data-submit-message>Menyimpan...</span>

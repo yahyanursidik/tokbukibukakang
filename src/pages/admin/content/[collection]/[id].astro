@@ -33,7 +33,7 @@ if (Astro.request.method === 'POST') {
 
   try {
     await updateContentRow(collection, id, await parseContentForm(collection, formData));
-    actionMessage = `${collection.singularLabel} berhasil diperbarui.`;
+    actionMessage = `${collection.singularLabel} berhasil diperbarui dan perubahan sudah tersimpan di Supabase.`;
   } catch (error) {
     errorMessage = error instanceof Error ? error.message : 'Konten belum berhasil diperbarui.';
   }
@@ -172,6 +172,22 @@ const getFieldClass = (fieldName: string, isWideType = false) => [
         )
       ))}
       <div class="flex flex-wrap gap-3 md:col-span-2">
+        {(actionMessage || errorMessage) && (
+          <div
+            class={`w-full rounded-3xl border p-4 text-sm font-bold ${
+              actionMessage
+                ? 'border-[#b9d8c2] bg-[#edf7ef] text-[#36543c]'
+                : 'border-date/25 bg-parchment/80 text-date'
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            <span class="block text-xs uppercase tracking-[0.14em] opacity-75">
+              {actionMessage ? 'Perubahan tersimpan' : 'Belum tersimpan'}
+            </span>
+            <span class="mt-1 block leading-6">{actionMessage || errorMessage}</span>
+          </div>
+        )}
         <div class="hidden w-full rounded-3xl border border-[#b9d8c2] bg-[#edf7ef] p-4 text-sm font-bold text-[#36543c]" data-submit-feedback role="status" aria-live="polite">
           <div class="flex items-center justify-between gap-3">
             <span data-submit-message>Menyimpan...</span>
