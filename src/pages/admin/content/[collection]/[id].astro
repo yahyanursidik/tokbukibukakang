@@ -165,7 +165,17 @@ const getFieldClass = (fieldName: string, isWideType = false) => [
                 Ya
               </span>
             ) : (
-              <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={field.name} type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'} value={String(getFormValue(row, field) ?? '')} required={field.required} placeholder={field.placeholder ?? ''} />
+              <input
+                class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30 read-only:bg-parchment/70 read-only:text-[#70675e]"
+                name={field.name}
+                type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
+                value={String(getFormValue(row, field) ?? '')}
+                required={field.required}
+                placeholder={field.placeholder ?? ''}
+                readonly={field.name === 'slug'}
+                data-auto-slug-title={field.name === 'title' ? 'true' : undefined}
+                data-auto-slug-input={field.name === 'slug' ? 'true' : undefined}
+              />
             )}
             {field.hint && <span class="text-xs font-medium text-[#82766b]">{field.hint}</span>}
           </label>

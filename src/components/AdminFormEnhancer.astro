@@ -11,6 +11,34 @@
     return `${size} B`;
   };
 
+  const normalizeSlug = (value: string) =>
+    value
+      .trim()
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+  const setupAutoSlug = (form: HTMLFormElement) => {
+    const titleInput = form.querySelector<HTMLInputElement>('[data-auto-slug-title]');
+    const slugInput = form.querySelector<HTMLInputElement>('[data-auto-slug-input]');
+
+    if (!titleInput || !slugInput) {
+      return;
+    }
+
+    const syncSlug = () => {
+      slugInput.value = normalizeSlug(titleInput.value);
+    };
+
+    if (!slugInput.value) {
+      syncSlug();
+    }
+
+    titleInput.addEventListener('input', syncSlug);
+  };
+
   const setProgress = (form: HTMLFormElement, value: number, message: string) => {
     const feedback = form.querySelector<HTMLElement>('[data-submit-feedback]');
     const bar = form.querySelector<HTMLElement>('[data-submit-progress]');
@@ -86,6 +114,8 @@
   });
 
   document.querySelectorAll<HTMLFormElement>('[data-admin-feedback-form]').forEach((form) => {
+    setupAutoSlug(form);
+
     form.addEventListener('submit', (event) => {
       const submitEvent = event as SubmitEvent;
       const submitter = submitEvent.submitter instanceof HTMLButtonElement ? submitEvent.submitter : null;

@@ -63,7 +63,7 @@ export const contentCollections: Record<ContentCollectionKey, CollectionConfig> 
     ],
     fields: [
       { name: 'title', label: 'Judul buku', type: 'text', required: true, placeholder: 'Contoh: Adab Sehari-hari Anak Muslim' },
-      { name: 'slug', label: 'Slug URL', type: 'text', required: true, hint: 'Gunakan huruf kecil dan tanda hubung.', placeholder: 'adab-sehari-hari-anak-muslim' },
+      { name: 'slug', label: 'Slug URL otomatis', type: 'text', required: true, hint: 'Dibuat otomatis dari judul. Tidak perlu diketik manual.', placeholder: 'adab-sehari-hari-anak-muslim' },
       { name: 'subtitle', label: 'Subjudul', type: 'text', placeholder: 'Kalimat pendek di bawah judul' },
       { name: 'author', label: 'Penulis', type: 'text', placeholder: 'Nama penulis atau tim penyusun' },
       { name: 'publisher', label: 'Penerbit', type: 'text', placeholder: 'Nama penerbit' },
@@ -123,7 +123,7 @@ export const contentCollections: Record<ContentCollectionKey, CollectionConfig> 
     ],
     fields: [
       { name: 'title', label: 'Judul', type: 'text', required: true },
-      { name: 'slug', label: 'Slug', type: 'text', required: true },
+      { name: 'slug', label: 'Slug URL otomatis', type: 'text', required: true, hint: 'Dibuat otomatis dari judul. Tidak perlu diketik manual.' },
       { name: 'book_slug', label: 'Slug buku', type: 'text', required: true },
       { name: 'summary', label: 'Ringkasan', type: 'textarea', required: true },
       { name: 'content', label: 'Isi resensi', type: 'textarea', required: true },
@@ -157,7 +157,7 @@ export const contentCollections: Record<ContentCollectionKey, CollectionConfig> 
     ],
     fields: [
       { name: 'title', label: 'Judul', type: 'text', required: true },
-      { name: 'slug', label: 'Slug', type: 'text', required: true },
+      { name: 'slug', label: 'Slug URL otomatis', type: 'text', required: true, hint: 'Dibuat otomatis dari judul. Tidak perlu diketik manual.' },
       { name: 'start_date', label: 'Tanggal mulai', type: 'date', required: true },
       { name: 'end_date', label: 'Tanggal ditutup', type: 'date', required: true },
       { name: 'estimated_shipping_date', label: 'Estimasi pengiriman', type: 'date', required: true },
@@ -197,7 +197,7 @@ export const contentCollections: Record<ContentCollectionKey, CollectionConfig> 
     ],
     fields: [
       { name: 'title', label: 'Judul', type: 'text', required: true },
-      { name: 'slug', label: 'Slug', type: 'text', required: true },
+      { name: 'slug', label: 'Slug URL otomatis', type: 'text', required: true, hint: 'Dibuat otomatis dari judul. Tidak perlu diketik manual.' },
       { name: 'description', label: 'Deskripsi', type: 'textarea', required: true },
       { name: 'seo_title', label: 'SEO title', type: 'text' },
       { name: 'seo_description', label: 'SEO description', type: 'textarea' }
@@ -278,6 +278,8 @@ const parseList = (value: string) =>
 const normalizeSlug = (value: string) =>
   value
     .trim()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
@@ -410,16 +412,17 @@ export const parseContentForm = async (collection: CollectionConfig, formData: F
       continue;
     }
 
-    if (field.required && !rawValue && field.type !== 'boolean') {
-      errors.push(`${field.label} wajib diisi.`);
+    if (field.name === 'slug') {
+      const titleValue = String(values.title ?? formData.get('title') ?? '').trim();
+      values[field.name] = normalizeSlug(rawValue || titleValue);
+      if (field.required && !values[field.name]) {
+        errors.push('Judul wajib berisi huruf atau angka agar Slug URL otomatis dapat dibuat.');
+      }
       continue;
     }
 
-    if (field.name === 'slug') {
-      values[field.name] = normalizeSlug(rawValue);
-      if (field.required && !values[field.name]) {
-        errors.push('Slug wajib berisi huruf atau angka.');
-      }
+    if (field.required && !rawValue && field.type !== 'boolean') {
+      errors.push(`${field.label} wajib diisi.`);
       continue;
     }
 
