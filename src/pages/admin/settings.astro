@@ -1,5 +1,6 @@
 ---
 import AdminShell from '@/components/AdminShell.astro';
+import AdminFormEnhancer from '@/components/AdminFormEnhancer.astro';
 import { isAdminAuthenticated } from '@/lib/admin/auth';
 import { getPaymentSettings, parsePaymentSettingsForm, updatePaymentSettings } from '@/lib/admin/settings';
 
@@ -45,7 +46,7 @@ try {
   {errorMessage && <div class="mt-6 rounded-3xl border border-date/25 bg-parchment/80 p-4 text-sm font-bold text-date">{errorMessage}</div>}
 
   {settings && (
-    <form class="soft-card mt-6 grid gap-5 p-5 sm:p-6" method="post" enctype="multipart/form-data">
+    <form class="soft-card mt-6 grid gap-5 p-5 sm:p-6" method="post" enctype="multipart/form-data" data-admin-feedback-form>
       <div class="grid gap-4 md:grid-cols-3">
         <label class="grid gap-2 text-sm font-bold text-[#5f564e]">
           Nama bank
@@ -73,9 +74,13 @@ try {
           )}
         </div>
         <div class="grid h-fit gap-4">
-          <label class="grid gap-2 text-sm font-bold text-[#5f564e]">
+          <label class="grid gap-2 text-sm font-bold text-[#5f564e]" data-upload-field>
             Upload QRIS
-            <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="qris_file" type="file" accept="image/jpeg,image/png,image/webp" />
+            <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="qris_file" type="file" accept="image/jpeg,image/png,image/webp" data-upload-input />
+            <div class="hidden rounded-3xl border border-[#eadcc7] bg-parchment/55 p-3" data-upload-preview>
+              <p class="text-xs font-semibold leading-5 text-[#70675e]" data-upload-preview-status>Belum ada file dipilih.</p>
+              <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-upload-preview-list></div>
+            </div>
           </label>
           <label class="grid gap-2 text-sm font-bold text-[#5f564e]">
             URL QRIS
@@ -106,10 +111,20 @@ try {
       </label>
 
       <div>
-        <button class="rounded-full bg-ink px-6 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date" type="submit">
+        <div class="mb-4 hidden rounded-3xl border border-[#b9d8c2] bg-[#edf7ef] p-4 text-sm font-bold text-[#36543c]" data-submit-feedback role="status" aria-live="polite">
+          <div class="flex items-center justify-between gap-3">
+            <span data-submit-message>Menyimpan...</span>
+            <span data-submit-percent>0%</span>
+          </div>
+          <div class="mt-3 h-2 overflow-hidden rounded-full bg-white/80">
+            <div class="h-full w-0 rounded-full bg-[#36543c] transition-all duration-300" data-submit-progress></div>
+          </div>
+        </div>
+        <button class="rounded-full bg-ink px-6 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date disabled:hover:translate-y-0" type="submit" data-loading-label="Menyimpan pengaturan...">
           Simpan pengaturan
         </button>
       </div>
     </form>
   )}
+  <AdminFormEnhancer />
 </AdminShell>

@@ -1,0 +1,169 @@
+<script>
+  const formatFileSize = (size: number) => {
+    if (size >= 1024 * 1024) {
+      return `${(size / 1024 / 1024).toFixed(1)} MB`;
+    }
+
+    if (size >= 1024) {
+      return `${Math.round(size / 1024)} KB`;
+    }
+
+    return `${size} B`;
+  };
+
+  const setProgress = (form: HTMLFormElement, value: number, message: string) => {
+    const feedback = form.querySelector<HTMLElement>('[data-submit-feedback]');
+    const bar = form.querySelector<HTMLElement>('[data-submit-progress]');
+    const percent = form.querySelector<HTMLElement>('[data-submit-percent]');
+    const text = form.querySelector<HTMLElement>('[data-submit-message]');
+    const safeValue = Math.max(0, Math.min(100, Math.round(value)));
+
+    feedback?.classList.remove('hidden');
+    if (bar) {
+      bar.style.width = `${safeValue}%`;
+    }
+    if (percent) {
+      percent.textContent = `${safeValue}%`;
+    }
+    if (text) {
+      text.textContent = message;
+    }
+  };
+
+  const restoreForm = (form: HTMLFormElement, message: string) => {
+    form.dataset.submitting = 'false';
+    form.querySelectorAll<HTMLButtonElement>('button[type="submit"]').forEach((button) => {
+      button.disabled = false;
+      button.classList.remove('cursor-wait', 'opacity-75');
+      button.textContent = button.dataset.defaultLabel ?? button.textContent ?? 'Simpan';
+    });
+    setProgress(form, 0, message);
+  };
+
+  const renderPreview = (input: HTMLInputElement) => {
+    const field = input.closest('[data-upload-field]');
+    const preview = field?.querySelector<HTMLElement>('[data-upload-preview]');
+    const previewList = field?.querySelector<HTMLElement>('[data-upload-preview-list]');
+    const previewStatus = field?.querySelector<HTMLElement>('[data-upload-preview-status]');
+
+    if (!preview || !previewList || !previewStatus) {
+      return;
+    }
+
+    const files = Array.from(input.files ?? []);
+    previewList.innerHTML = '';
+
+    if (files.length === 0) {
+      preview.classList.add('hidden');
+      previewStatus.textContent = 'Belum ada file dipilih.';
+      return;
+    }
+
+    preview.classList.remove('hidden');
+    previewStatus.textContent = `${files.length} file siap di-upload. Progress akan tampil saat tombol simpan ditekan.`;
+
+    files.forEach((file) => {
+      const item = document.createElement('div');
+      item.className = 'grid gap-2 rounded-2xl border border-[#eadcc7] bg-white/80 p-3';
+
+      const image = document.createElement('img');
+      image.className = 'aspect-[3/4] w-full rounded-2xl bg-parchment object-contain p-2';
+      image.alt = `Pratinjau ${file.name}`;
+      image.src = URL.createObjectURL(file);
+      image.onload = () => URL.revokeObjectURL(image.src);
+
+      const caption = document.createElement('p');
+      caption.className = 'break-words text-xs font-semibold leading-5 text-[#70675e]';
+      caption.textContent = `${file.name} - ${formatFileSize(file.size)}`;
+
+      item.append(image, caption);
+      previewList.append(item);
+    });
+  };
+
+  document.querySelectorAll<HTMLInputElement>('[data-upload-input]').forEach((input) => {
+    input.addEventListener('change', () => renderPreview(input));
+  });
+
+  document.querySelectorAll<HTMLFormElement>('[data-admin-feedback-form]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+      const submitEvent = event as SubmitEvent;
+      const submitter = submitEvent.submitter instanceof HTMLButtonElement ? submitEvent.submitter : null;
+
+      if (form.dataset.submitting === 'true') {
+        event.preventDefault();
+        return;
+      }
+
+      if (form.method.toLowerCase() !== 'post') {
+        return;
+      }
+
+      event.preventDefault();
+      form.dataset.submitting = 'true';
+
+      form.querySelectorAll<HTMLButtonElement>('button[type="submit"]').forEach((button) => {
+        button.dataset.defaultLabel = button.dataset.defaultLabel ?? button.textContent?.trim() ?? 'Simpan';
+        button.disabled = true;
+        button.classList.add('cursor-wait', 'opacity-75');
+      });
+
+      if (submitter) {
+        submitter.textContent = submitter.dataset.loadingLabel ?? 'Menyimpan...';
+      }
+
+      const hasFiles = Array.from(form.querySelectorAll<HTMLInputElement>('input[type="file"]')).some((input) =>
+        Array.from(input.files ?? []).some((file) => file.size > 0)
+      );
+      const startMessage = hasFiles ? 'Menyiapkan file dan data form...' : 'Mengirim data form...';
+      setProgress(form, 5, startMessage);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open(form.method, form.action || window.location.href);
+      xhr.responseType = 'text';
+
+      xhr.upload.addEventListener('progress', (progressEvent) => {
+        if (!progressEvent.lengthComputable) {
+          setProgress(form, 45, hasFiles ? 'Upload sedang berjalan...' : 'Data sedang dikirim...');
+          return;
+        }
+
+        const uploadPercent = Math.round((progressEvent.loaded / progressEvent.total) * 90);
+        setProgress(
+          form,
+          Math.max(10, uploadPercent),
+          hasFiles ? 'Meng-upload file ke server...' : 'Mengirim data ke server...'
+        );
+      });
+
+      xhr.upload.addEventListener('load', () => {
+        setProgress(form, hasFiles ? 92 : 80, hasFiles ? 'Upload diterima, menyimpan ke Supabase...' : 'Menyimpan ke Supabase...');
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 400) {
+          setProgress(form, 100, 'Tersimpan. Memuat ulang tampilan...');
+          const responseUrl = xhr.responseURL || window.location.href;
+          document.open();
+          document.write(xhr.responseText);
+          document.close();
+          window.history.replaceState(null, '', responseUrl);
+          return;
+        }
+
+        restoreForm(form, `Gagal menyimpan. Server mengembalikan status ${xhr.status}.`);
+      });
+
+      xhr.addEventListener('error', () => {
+        restoreForm(form, 'Koneksi terputus saat menyimpan. Coba ulangi lagi.');
+      });
+
+      xhr.addEventListener('abort', () => {
+        restoreForm(form, 'Proses simpan dibatalkan.');
+      });
+
+      setProgress(form, hasFiles ? 12 : 20, hasFiles ? 'Upload dimulai...' : 'Simpan dimulai...');
+      xhr.send(new FormData(form));
+    });
+  });
+</script>
