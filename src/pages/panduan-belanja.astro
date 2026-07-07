@@ -1,15 +1,361 @@
 ---
-import PlaceholderPage from '@/components/PlaceholderPage.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import { placeholderPages } from '@/config/site';
+import { siteConfig } from '@/config/site';
 import { getPublicPageBySlug } from '@/lib/content/public';
 
 export const prerender = false;
 
-const page = placeholderPages.shoppingGuide;
 const pageMeta = await getPublicPageBySlug('panduan-belanja');
+
+const shoppingSteps = [
+  {
+    title: 'Pilih buku',
+    description: 'Buka katalog atau halaman PO, lalu pilih buku yang sesuai usia, tema, dan kebutuhan keluarga.'
+  },
+  {
+    title: 'Masukkan keranjang',
+    description: 'Simpan buku pilihan ke keranjang agar jumlah dan subtotal mudah dicek sebelum checkout.'
+  },
+  {
+    title: 'Isi data pemesan',
+    description: 'Lengkapi nama, WhatsApp, alamat, dan catatan pengiriman. Data ini dipakai untuk invoice dan pengiriman.'
+  },
+  {
+    title: 'Transfer manual',
+    description: 'Ikuti instruksi pembayaran pada halaman invoice. Ongkir dapat dikonfirmasi oleh Ibu Kakang bila diperlukan.'
+  },
+  {
+    title: 'Konfirmasi pembayaran',
+    description: 'Kirim konfirmasi melalui form yang tersedia agar pembayaran bisa dicek dan status pesanan diperbarui.'
+  }
+];
+
+const preorderNotes = [
+  {
+    title: 'Perhatikan tanggal tutup PO',
+    description: 'Pesanan PO diproses mengikuti periode yang sedang dibuka. Setelah ditutup, judul bisa masuk proses rekap dan pengadaan.'
+  },
+  {
+    title: 'Cek estimasi pengiriman',
+    description: 'Buku PO tidak selalu langsung dikirim seperti ready stock. Estimasi kirim ditampilkan di halaman detail PO.'
+  },
+  {
+    title: 'Gabungkan pesanan dengan tenang',
+    description: 'Jika membeli beberapa buku dari periode yang sama, masukkan semuanya ke keranjang sebelum checkout.'
+  }
+];
+
+const paymentTips = [
+  'Gunakan nomor invoice saat mengisi form konfirmasi pembayaran.',
+  'Pastikan nominal transfer sesuai instruksi terbaru, termasuk ongkir bila sudah dikonfirmasi.',
+  'Unggah bukti transfer yang jelas agar verifikasi lebih mudah.',
+  'Simpan tautan invoice sampai pesanan selesai diproses.',
+  'Hubungi Ibu Kakang lewat WhatsApp bila ada kendala pembayaran atau alamat.'
+];
+
+const choosingTips = [
+  'Untuk balita, pilih buku dengan kalimat pendek, gambar jelas, dan tema keseharian.',
+  'Untuk anak yang mulai membaca, cari buku dengan alur sederhana dan pesan yang mudah didiskusikan.',
+  'Untuk hadiah, pilih tema yang aman untuk banyak keluarga seperti adab, doa, kisah, atau aktivitas.',
+  'Baca bagian ringkasan resensi, catatan orang tua, dan Catatan dari Books by Ibunya Kakang sebelum checkout.'
+];
 ---
 
-<BaseLayout title={pageMeta?.seoTitle ?? 'Panduan Belanja'} description={pageMeta?.seoDescription ?? page.description}>
-  <PlaceholderPage {...page} />
+<BaseLayout
+  title={pageMeta?.seoTitle ?? 'Panduan Belanja Books by Ibunya Kakang'}
+  description={pageMeta?.seoDescription ?? 'Panduan belanja buku anak Islami, pre-order, checkout, pembayaran, dan konfirmasi di Books by Ibunya Kakang.'}
+>
+  <section class="page-shell py-12 sm:py-16">
+    <div class="watercolor-panel overflow-hidden p-0">
+      <div class="grid gap-0 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
+        <div class="p-6 sm:p-8 lg:p-12">
+          <p class="mb-4 inline-flex rounded-full border border-date/20 bg-white/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-date">
+            Panduan belanja
+          </p>
+          <h1 class="max-w-3xl font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl">
+            Cara belanja buku yang jelas dari katalog sampai konfirmasi pembayaran.
+          </h1>
+          <p class="mt-5 max-w-2xl text-base leading-8 text-[#5f564e] sm:text-lg">
+            Belanja di Books by Ibunya Kakang dibuat manual, dekat, dan mudah diikuti. Pilih buku, checkout, baca invoice, lalu konfirmasi pembayaran agar pesanan bisa diproses.
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a class="button-primary bg-[#36543c] hover:bg-date" href="/buku">Mulai dari katalog</a>
+            <a class="button-secondary" href="/po">Lihat PO aktif</a>
+          </div>
+        </div>
+
+        <div class="guide-hero-visual" aria-hidden="true">
+          <span class="guide-hero-card guide-hero-card-one">
+            <strong>1</strong>
+            Pilih buku
+          </span>
+          <span class="guide-hero-card guide-hero-card-two">
+            <strong>2</strong>
+            Checkout
+          </span>
+          <span class="guide-hero-card guide-hero-card-three">
+            <strong>3</strong>
+            Transfer
+          </span>
+          <span class="guide-hero-line"></span>
+        </div>
+      </div>
+    </div>
+
+    <section class="mt-8">
+      <div class="mb-5 max-w-3xl">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Alur utama</p>
+        <h2 class="mt-2 font-serif text-3xl font-bold text-ink">Ikuti lima langkah ini.</h2>
+        <p class="mt-3 text-sm leading-7 text-[#70675e] sm:text-base">
+          Urutan ini berlaku untuk buku ready stock maupun buku PO. Bila ada detail khusus, Ibu Kakang akan bantu konfirmasi melalui WhatsApp.
+        </p>
+      </div>
+
+      <ol class="guide-flow">
+        {shoppingSteps.map((step, index) => (
+          <li class="guide-flow-item">
+            <span class="guide-flow-number">{index + 1}</span>
+            <div>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="mt-8 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+      <div class="rounded-[28px] border border-[#eadcc7] bg-white/72 p-6 shadow-soft sm:p-7">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Khusus pre-order</p>
+        <h2 class="mt-3 font-serif text-3xl font-bold text-ink">Buku PO punya jadwal sendiri.</h2>
+        <p class="mt-4 text-sm leading-7 text-[#70675e] sm:text-base sm:leading-8">
+          Pre-order berarti buku dipesan dalam periode tertentu. Karena itu, tanggal tutup dan estimasi pengiriman perlu dibaca sebelum membuat pesanan.
+        </p>
+        <a class="button-secondary mt-5" href="/po">Cek periode PO</a>
+      </div>
+
+      <div class="grid gap-3">
+        {preorderNotes.map((note) => (
+          <article class="soft-card p-5">
+            <h3 class="font-serif text-xl font-bold text-ink">{note.title}</h3>
+            <p class="mt-2 text-sm leading-7 text-[#70675e]">{note.description}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-8 grid gap-6 lg:grid-cols-2">
+      <div class="soft-card p-6 sm:p-7">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Pembayaran</p>
+        <h2 class="mt-3 font-serif text-3xl font-bold text-ink">Transfer dan konfirmasi dibuat manual.</h2>
+        <ul class="mt-5 grid gap-3">
+          {paymentTips.map((tip) => (
+            <li class="guide-check-item">
+              <span>OK</span>
+              <p>{tip}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="soft-card p-6 sm:p-7">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Memilih buku</p>
+        <h2 class="mt-3 font-serif text-3xl font-bold text-ink">Gunakan usia dan kebutuhan anak sebagai awal.</h2>
+        <ul class="mt-5 grid gap-3">
+          {choosingTips.map((tip) => (
+            <li class="guide-check-item">
+              <span>OK</span>
+              <p>{tip}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="mt-8 rounded-[28px] border border-[#eadcc7] bg-parchment/70 p-6 shadow-soft sm:p-8">
+      <div class="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Butuh bantuan</p>
+          <h2 class="mt-3 font-serif text-3xl font-bold text-ink">Kirim pertanyaan sebelum checkout bila masih ragu.</h2>
+          <p class="mt-3 max-w-2xl text-sm leading-7 text-[#70675e] sm:text-base">
+            Ceritakan usia anak, tema yang dicari, atau kebutuhan hadiah. Ibu Kakang akan bantu arahkan pilihan buku dan menjelaskan proses PO bila ada.
+          </p>
+        </div>
+        <a
+          class="button-primary bg-[#36543c] hover:bg-date"
+          href={`${siteConfig.whatsappUrl}?text=${encodeURIComponent("Assalamu'alaikum, saya ingin bertanya tentang cara belanja di Books by Ibunya Kakang.")}`}
+        >
+          Tanya via WhatsApp
+        </a>
+      </div>
+    </section>
+  </section>
 </BaseLayout>
+
+<style>
+  .guide-hero-visual {
+    min-height: 340px;
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(135deg, rgba(185, 216, 194, 0.65), rgba(248, 236, 215, 0.92)),
+      #f8ecd7;
+  }
+
+  .guide-hero-line {
+    position: absolute;
+    inset: 50% 14% auto 14%;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(138, 95, 63, 0.28);
+  }
+
+  .guide-hero-card {
+    position: absolute;
+    z-index: 1;
+    display: grid;
+    width: min(190px, 44vw);
+    gap: 0.6rem;
+    border: 1px solid rgba(138, 95, 63, 0.22);
+    border-radius: 24px;
+    background: rgba(255, 250, 241, 0.88);
+    color: #5f564e;
+    font-size: 0.95rem;
+    font-weight: 800;
+    padding: 1.1rem;
+    box-shadow: 0 18px 36px rgba(47, 42, 37, 0.11);
+  }
+
+  .guide-hero-card strong {
+    display: grid;
+    height: 44px;
+    width: 44px;
+    place-items: center;
+    border-radius: 999px;
+    background: #36543c;
+    color: #fff8ef;
+    font-family: Georgia, Cambria, 'Times New Roman', serif;
+    font-size: 1.45rem;
+  }
+
+  .guide-hero-card-one {
+    left: 12%;
+    top: 18%;
+    transform: rotate(-5deg);
+  }
+
+  .guide-hero-card-two {
+    left: 40%;
+    top: 42%;
+    transform: rotate(3deg);
+  }
+
+  .guide-hero-card-three {
+    bottom: 16%;
+    right: 10%;
+    transform: rotate(-3deg);
+  }
+
+  .guide-flow {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .guide-flow-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    border: 1px solid #eadcc7;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.72);
+    padding: 1.1rem;
+    box-shadow: 0 16px 35px rgba(47, 42, 37, 0.07);
+  }
+
+  .guide-flow-number {
+    display: grid;
+    height: 46px;
+    width: 46px;
+    place-items: center;
+    border-radius: 999px;
+    background: #2f2a25;
+    color: #fff8ef;
+    font-family: Georgia, Cambria, 'Times New Roman', serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+
+  .guide-flow-item h3 {
+    color: #2f2a25;
+    font-family: Georgia, Cambria, 'Times New Roman', serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .guide-flow-item p {
+    margin-top: 0.45rem;
+    color: #70675e;
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+
+  .guide-check-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: start;
+    border-radius: 18px;
+    background: rgba(248, 236, 215, 0.7);
+    padding: 1rem;
+  }
+
+  .guide-check-item span {
+    display: grid;
+    height: 28px;
+    width: 28px;
+    place-items: center;
+    border-radius: 999px;
+    background: #36543c;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+  }
+
+  .guide-check-item p {
+    color: #5f564e;
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+
+  @media (min-width: 768px) {
+    .guide-flow {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .guide-flow-item {
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 100%;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .guide-hero-card {
+      width: 154px;
+      padding: 0.9rem;
+    }
+
+    .guide-hero-card-one {
+      left: 8%;
+    }
+
+    .guide-hero-card-two {
+      left: 34%;
+    }
+
+    .guide-hero-card-three {
+      right: 6%;
+    }
+  }
+</style>
