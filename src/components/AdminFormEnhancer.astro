@@ -1,4 +1,6 @@
 <script>
+  import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+
   const formatFileSize = (size: number) => {
     if (size >= 1024 * 1024) {
       return `${(size / 1024 / 1024).toFixed(1)} MB`;
@@ -68,6 +70,128 @@
     setProgress(form, 0, message);
   };
 
+  const getFormSlug = (form: HTMLFormElement) => {
+    const slugInput = form.querySelector<HTMLInputElement>('[data-auto-slug-input]');
+    const titleInput = form.querySelector<HTMLInputElement>('[data-auto-slug-title]');
+
+    return normalizeSlug(slugInput?.value || titleInput?.value || 'upload');
+  };
+
+  const appendUrlToTarget = (form: HTMLFormElement, targetName: string, mode: string, url: string) => {
+    const target = form.elements.namedItem(targetName);
+
+    if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
+      throw new Error(`Target URL upload "${targetName}" tidak ditemukan.`);
+    }
+
+    if (mode === 'append-lines') {
+      const existingLines = target.value
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+      target.value = [...existingLines, url].join('\n');
+      return;
+    }
+
+    target.value = url;
+  };
+
+  const requestSignedUpload = async (input: HTMLInputElement, file: File, form: HTMLFormElement) => {
+    const response = await fetch('/admin/api/storage-upload-url', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        bucket: input.dataset.directUploadBucket,
+        fieldName: input.dataset.directUploadField ?? input.name,
+        slug: getFormSlug(form),
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size
+      })
+    });
+
+    const payload = (await response.json().catch(() => null)) as
+      | {
+          bucket?: string;
+          path?: string;
+          token?: string;
+          publicUrl?: string;
+          message?: string;
+        }
+      | null;
+
+    if (!response.ok || !payload?.bucket || !payload.path || !payload.token || !payload.publicUrl) {
+      throw new Error(payload?.message ?? 'URL upload Supabase gagal dibuat.');
+    }
+
+    return {
+      bucket: payload.bucket,
+      path: payload.path,
+      token: payload.token,
+      publicUrl: payload.publicUrl
+    };
+  };
+
+  const uploadDirectFiles = async (form: HTMLFormElement) => {
+    const inputs = Array.from(form.querySelectorAll<HTMLInputElement>('input[type="file"][data-direct-upload-bucket]'));
+    const uploadItems = inputs.flatMap((input) =>
+      Array.from(input.files ?? []).map((file) => ({
+        input,
+        file
+      }))
+    );
+
+    if (uploadItems.length === 0) {
+      return false;
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    let completed = 0;
+
+    for (const { input, file } of uploadItems) {
+      const targetName = input.dataset.directUploadTarget;
+      const mode = input.dataset.directUploadMode ?? 'replace';
+
+      if (!targetName) {
+        throw new Error('Target URL upload belum dikonfigurasi.');
+      }
+
+      const startPercent = 8 + Math.round((completed / uploadItems.length) * 72);
+      setProgress(form, startPercent, `Meng-upload ${completed + 1}/${uploadItems.length}: ${file.name}`);
+
+      const signedUpload = await requestSignedUpload(input, file, form);
+      const { error } = await supabase.storage.from(signedUpload.bucket).uploadToSignedUrl(
+        signedUpload.path,
+        signedUpload.token,
+        file,
+        {
+          contentType: file.type
+        }
+      );
+
+      if (error) {
+        throw new Error(`Upload ${file.name} gagal: ${error.message}`);
+      }
+
+      appendUrlToTarget(form, targetName, mode, signedUpload.publicUrl);
+      completed += 1;
+      setProgress(form, 8 + Math.round((completed / uploadItems.length) * 72), `Upload ${completed}/${uploadItems.length} selesai.`);
+    }
+
+    inputs.forEach((input) => {
+      input.value = '';
+      const field = input.closest('[data-upload-field]');
+      const previewStatus = field?.querySelector<HTMLElement>('[data-upload-preview-status]');
+      if (previewStatus) {
+        previewStatus.textContent = 'File sudah di-upload ke Supabase. URL gambar akan ikut disimpan.';
+      }
+    });
+
+    return true;
+  };
+
   const renderPreview = (input: HTMLInputElement) => {
     const field = input.closest('[data-upload-field]');
     const preview = field?.querySelector<HTMLElement>('[data-upload-preview]');
@@ -116,7 +240,7 @@
   document.querySelectorAll<HTMLFormElement>('[data-admin-feedback-form]').forEach((form) => {
     setupAutoSlug(form);
 
-    form.addEventListener('submit', (event) => {
+    form.addEventListener('submit', async (event) => {
       const submitEvent = event as SubmitEvent;
       const submitter = submitEvent.submitter instanceof HTMLButtonElement ? submitEvent.submitter : null;
 
@@ -147,6 +271,16 @@
       );
       const startMessage = hasFiles ? 'Menyiapkan file dan data form...' : 'Mengirim data form...';
       setProgress(form, 5, startMessage);
+
+      try {
+        const hadDirectUploads = await uploadDirectFiles(form);
+        if (hadDirectUploads) {
+          setProgress(form, 84, 'URL gambar siap. Menyimpan data buku...');
+        }
+      } catch (error) {
+        restoreForm(form, error instanceof Error ? error.message : 'Upload gambar belum berhasil.');
+        return;
+      }
 
       const xhr = new XMLHttpRequest();
       xhr.open(form.method, form.action || window.location.href);
@@ -181,6 +315,11 @@
           return;
         }
 
+        if (xhr.status === 413) {
+          restoreForm(form, 'Gagal menyimpan karena ukuran request terlalu besar. Coba pilih ulang gambar, lalu simpan lagi agar upload langsung ke Supabase berjalan.');
+          return;
+        }
+
         restoreForm(form, `Gagal menyimpan. Server mengembalikan status ${xhr.status}.`);
       });
 
@@ -192,7 +331,7 @@
         restoreForm(form, 'Proses simpan dibatalkan.');
       });
 
-      setProgress(form, hasFiles ? 12 : 20, hasFiles ? 'Upload dimulai...' : 'Simpan dimulai...');
+      setProgress(form, hasFiles ? 88 : 20, hasFiles ? 'Mengirim data tanpa file besar...' : 'Simpan dimulai...');
       xhr.send(new FormData(form));
     });
   });
