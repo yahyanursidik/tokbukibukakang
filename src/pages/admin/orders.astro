@@ -1,6 +1,8 @@
 ---
 import AdminShell from '@/components/AdminShell.astro';
+import AdminPagination from '@/components/AdminPagination.astro';
 import { isAdminAuthenticated } from '@/lib/admin/auth';
+import { getAdminPagination } from '@/lib/admin/pagination';
 import {
   formatDateTime,
   formatRupiah,
@@ -19,11 +21,12 @@ if (!(await isAdminAuthenticated(Astro.cookies))) {
 const paymentStatus = Astro.url.searchParams.get('payment_status') ?? '';
 const orderStatus = Astro.url.searchParams.get('order_status') ?? '';
 const search = Astro.url.searchParams.get('q') ?? '';
-let orders: Awaited<ReturnType<typeof listAdminOrders>> = [];
+const pagination = getAdminPagination(Astro.url, 20);
+let orderResult: Awaited<ReturnType<typeof listAdminOrders>> = { items: [], total: 0 };
 let errorMessage = '';
 
 try {
-  orders = await listAdminOrders({ paymentStatus, orderStatus, search });
+  orderResult = await listAdminOrders({ paymentStatus, orderStatus, search, pagination });
 } catch (error) {
   errorMessage = error instanceof Error ? error.message : 'Order belum dapat dimuat.';
 }
@@ -46,6 +49,7 @@ try {
   </div>
 
   <form class="soft-card mt-6 grid gap-4 p-5 lg:grid-cols-[1fr_220px_220px_auto]" method="get">
+    <input type="hidden" name="per_page" value={pagination.perPage} />
     <input class="rounded-full border border-[#eadcc7] bg-white/80 px-4 py-3 text-sm outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="q" value={search} placeholder="Cari invoice, nama, WhatsApp" />
     <select class="rounded-full border border-[#eadcc7] bg-white/80 px-4 py-3 text-sm outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="payment_status">
       <option value="">Semua payment</option>
@@ -74,11 +78,11 @@ try {
               <th class="px-5 py-3 text-right">Total</th>
               <th class="px-5 py-3 text-right">Invoice</th>
             </tr>
-          </thead>
-          <tbody>
-            {orders.length === 0 ? (
+        </thead>
+        <tbody>
+            {orderResult.items.length === 0 ? (
               <tr><td class="px-5 py-8 text-center text-[#70675e]" colspan="7">Tidak ada order yang cocok.</td></tr>
-            ) : orders.map((order) => (
+            ) : orderResult.items.map((order) => (
               <tr class="border-t border-[#eadcc7]">
                 <td class="px-5 py-4 font-bold text-ink"><a class="hover:text-date" href={`/admin/orders/${order.id}`}>{order.order_number}</a><br /><span class="text-xs font-medium text-[#70675e]">{formatDateTime(order.created_at)}</span></td>
                 <td class="px-5 py-4 text-[#70675e]">{order.customer_name}</td>
@@ -101,6 +105,7 @@ try {
           </tbody>
         </table>
       </div>
+      <AdminPagination page={pagination.page} perPage={pagination.perPage} total={orderResult.total} label="order" />
     </section>
   )}
 </AdminShell>

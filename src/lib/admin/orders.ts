@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { Database, OrderStatus, PaymentStatus } from '@/lib/supabase/client';
+import type { AdminPagination, PaginatedResult } from '@/lib/admin/pagination';
 
 export type { OrderStatus, PaymentStatus } from '@/lib/supabase/client';
 
@@ -69,9 +70,14 @@ export const listAdminOrders = async (filters: {
   orderStatus?: string;
   paymentStatus?: string;
   search?: string;
-}) => {
+  pagination: AdminPagination;
+}): Promise<PaginatedResult<OrderRow>> => {
   const supabase = createSupabaseServerClient();
-  let query = supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(100);
+  let query = supabase
+    .from('orders')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(filters.pagination.from, filters.pagination.to);
 
   if (orderStatusOptions.includes(filters.orderStatus as OrderStatus)) {
     query = query.eq('status', filters.orderStatus as OrderStatus);
@@ -86,13 +92,16 @@ export const listAdminOrders = async (filters: {
     query = query.or(`order_number.ilike.%${search}%,customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`);
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return data ?? [];
+  return {
+    items: data ?? [],
+    total: count ?? 0
+  };
 };
 
 export const getAdminOrderDetail = async (id: string) => {
@@ -122,13 +131,45 @@ export const getAdminOrderDetail = async (id: string) => {
   };
 };
 
-export const listAdminPaymentConfirmations = async () => {
+export const listAdminPaymentConfirmations = async (filters: {
+  status?: string;
+  search?: string;
+  pagination: AdminPagination;
+}): Promise<PaginatedResult<PaymentConfirmationWithOrder>> => {
   const supabase = createSupabaseServerClient();
-  const { data: confirmations, error } = await supabase
+  let query = supabase
     .from('payment_confirmations')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('created_at', { ascending: false })
-    .limit(100);
+    .range(filters.pagination.from, filters.pagination.to);
+
+  if (paymentStatusOptions.includes(filters.status as PaymentStatus)) {
+    query = query.eq('status', filters.status as PaymentStatus);
+  }
+
+  const search = cleanSearch(filters.search ?? '');
+  if (search) {
+    const { data: matchingOrders, error: matchingOrdersError } = await supabase
+      .from('orders')
+      .select('id')
+      .or(`order_number.ilike.%${search}%,customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`)
+      .limit(100);
+
+    if (matchingOrdersError) {
+      throw new Error(matchingOrdersError.message);
+    }
+
+    const orderIds = (matchingOrders ?? []).map((order) => order.id);
+    const searchFilters = [`sender_name.ilike.%${search}%`, `bank_name.ilike.%${search}%`];
+
+    if (orderIds.length > 0) {
+      searchFilters.push(`order_id.in.(${orderIds.join(',')})`);
+    }
+
+    query = query.or(searchFilters.join(','));
+  }
+
+  const { data: confirmations, error, count } = await query;
 
   if (error) {
     throw new Error(error.message);
@@ -137,7 +178,10 @@ export const listAdminPaymentConfirmations = async () => {
   const orderIds = [...new Set((confirmations ?? []).map((confirmation) => confirmation.order_id))];
 
   if (orderIds.length === 0) {
-    return [];
+    return {
+      items: [],
+      total: count ?? 0
+    };
   }
 
   const { data: orders, error: ordersError } = await supabase
@@ -151,10 +195,13 @@ export const listAdminPaymentConfirmations = async () => {
 
   const orderMap = new Map((orders ?? []).map((order) => [order.id, order]));
 
-  return (confirmations ?? []).map((confirmation) => ({
-    ...confirmation,
-    order: orderMap.get(confirmation.order_id)
-  })) satisfies PaymentConfirmationWithOrder[];
+  return {
+    items: (confirmations ?? []).map((confirmation) => ({
+      ...confirmation,
+      order: orderMap.get(confirmation.order_id)
+    })) satisfies PaymentConfirmationWithOrder[],
+    total: count ?? 0
+  };
 };
 
 export const updateOrderStatus = async (

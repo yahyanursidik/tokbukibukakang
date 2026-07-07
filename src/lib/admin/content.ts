@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { Json } from '@/lib/supabase/client';
+import type { AdminPagination, PaginatedResult } from '@/lib/admin/pagination';
 
 type TableName = 'books' | 'reviews' | 'po_periods' | 'pages';
 type FieldType =
@@ -209,6 +210,35 @@ export const contentCollectionKeys = Object.keys(contentCollections) as ContentC
 
 export const getContentCollection = (key: string) => contentCollections[key as ContentCollectionKey] ?? null;
 
+export const getContentListFilterOptions = (collection: CollectionConfig) => {
+  if (collection.key === 'books') {
+    return [
+      { label: 'Preorder', value: 'preorder' },
+      { label: 'Ready stock', value: 'ready_stock' },
+      { label: 'Aktif', value: 'active' },
+      { label: 'Nonaktif', value: 'inactive' }
+    ];
+  }
+
+  if (collection.key === 'po-periods') {
+    return [
+      { label: 'Draft', value: 'draft' },
+      { label: 'Open', value: 'open' },
+      { label: 'Closed', value: 'closed' },
+      { label: 'Archived', value: 'archived' }
+    ];
+  }
+
+  if (collection.key === 'reviews') {
+    return [
+      { label: 'Original', value: 'original' },
+      { label: 'Ringkasan eksternal', value: 'external_summary' }
+    ];
+  }
+
+  return [];
+};
+
 export const formatContentValue = (value: unknown, type?: string) => {
   if (value === null || value === undefined || value === '') {
     return '-';
@@ -297,6 +327,24 @@ const parseUrlList = (value: string) =>
     .split(/[\n,]/)
     .map((item) => item.trim())
     .filter(Boolean);
+
+const cleanListSearch = (value: string) => value.trim().replace(/[,%]/g, '');
+
+const getContentSearchColumns = (collection: CollectionConfig) => {
+  if (collection.key === 'books') {
+    return ['title', 'slug', 'subtitle', 'author', 'publisher'];
+  }
+
+  if (collection.key === 'reviews') {
+    return ['title', 'slug', 'book_slug', 'source_name'];
+  }
+
+  if (collection.key === 'po-periods') {
+    return ['title', 'slug', 'description'];
+  }
+
+  return ['title', 'slug', 'seo_title'];
+};
 
 const getImageExtension = (file: File) => {
   const extensionFromName = file.name.split('.').pop()?.toLowerCase();
@@ -483,19 +531,51 @@ export const parseContentForm = async (collection: CollectionConfig, formData: F
   return values;
 };
 
-export const listContentRows = async (collection: CollectionConfig) => {
+export const listContentRows = async (
+  collection: CollectionConfig,
+  filters: {
+    search?: string;
+    status?: string;
+    pagination: AdminPagination;
+  }
+): Promise<PaginatedResult<ContentRow>> => {
   const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
+  let query: any = supabase
     .from(collection.table)
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('updated_at', { ascending: false })
-    .limit(200);
+    .range(filters.pagination.from, filters.pagination.to);
+
+  const status = String(filters.status ?? '');
+  const filterOptions = getContentListFilterOptions(collection).map((option) => option.value);
+
+  if (filterOptions.includes(status)) {
+    if (collection.key === 'books' && (status === 'active' || status === 'inactive')) {
+      query = query.eq('is_active', status === 'active');
+    } else if (collection.key === 'books') {
+      query = query.eq('stock_type', status);
+    } else if (collection.key === 'reviews') {
+      query = query.eq('source_type', status);
+    } else if (collection.key === 'po-periods') {
+      query = query.eq('status', status);
+    }
+  }
+
+  const search = cleanListSearch(filters.search ?? '');
+  if (search) {
+    query = query.or(getContentSearchColumns(collection).map((column) => `${column}.ilike.%${search}%`).join(','));
+  }
+
+  const { data, error, count } = await query;
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return (data ?? []) as ContentRow[];
+  return {
+    items: (data ?? []) as ContentRow[],
+    total: count ?? 0
+  };
 };
 
 export const listBookOptions = async () => {

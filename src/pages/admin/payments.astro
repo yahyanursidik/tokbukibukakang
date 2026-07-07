@@ -1,10 +1,13 @@
 ---
 import AdminShell from '@/components/AdminShell.astro';
+import AdminPagination from '@/components/AdminPagination.astro';
 import { isAdminAuthenticated } from '@/lib/admin/auth';
+import { getAdminPagination } from '@/lib/admin/pagination';
 import {
   formatDateTime,
   formatRupiah,
   listAdminPaymentConfirmations,
+  paymentStatusOptions,
   statusLabel,
   updatePaymentConfirmationStatus
 } from '@/lib/admin/orders';
@@ -12,9 +15,12 @@ import {
 export const prerender = false;
 
 if (!(await isAdminAuthenticated(Astro.cookies))) {
-  return Astro.redirect(`/admin?next=${encodeURIComponent(Astro.url.pathname)}`);
+  return Astro.redirect(`/admin?next=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`);
 }
 
+const status = Astro.url.searchParams.get('status') ?? '';
+const search = Astro.url.searchParams.get('q') ?? '';
+const pagination = getAdminPagination(Astro.url, 10);
 let actionMessage = '';
 let errorMessage = '';
 
@@ -38,10 +44,10 @@ if (Astro.request.method === 'POST') {
   }
 }
 
-let confirmations: Awaited<ReturnType<typeof listAdminPaymentConfirmations>> = [];
+let confirmationResult: Awaited<ReturnType<typeof listAdminPaymentConfirmations>> = { items: [], total: 0 };
 
 try {
-  confirmations = await listAdminPaymentConfirmations();
+  confirmationResult = await listAdminPaymentConfirmations({ status, search, pagination });
 } catch (error) {
   errorMessage = error instanceof Error ? error.message : 'Konfirmasi pembayaran belum dapat dimuat.';
 }
@@ -56,10 +62,20 @@ try {
   {actionMessage && <div class="mt-6 rounded-3xl border border-[#b9d8c2] bg-[#edf7ef] p-4 text-sm font-bold text-[#36543c]">{actionMessage}</div>}
   {errorMessage && <div class="mt-6 rounded-3xl border border-date/25 bg-parchment/80 p-4 text-sm font-bold text-date">{errorMessage}</div>}
 
+  <form class="soft-card mt-6 grid gap-4 p-5 lg:grid-cols-[1fr_220px_auto]" method="get">
+    <input type="hidden" name="per_page" value={pagination.perPage} />
+    <input class="rounded-full border border-[#eadcc7] bg-white/80 px-4 py-3 text-sm outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="q" value={search} placeholder="Cari pengirim, bank, invoice, customer" />
+    <select class="rounded-full border border-[#eadcc7] bg-white/80 px-4 py-3 text-sm outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="status">
+      <option value="">Semua status</option>
+      {paymentStatusOptions.map((option) => <option value={option} selected={status === option}>{statusLabel(option)}</option>)}
+    </select>
+    <button class="rounded-full bg-ink px-5 py-3 text-sm font-bold text-cream" type="submit">Filter</button>
+  </form>
+
   <section class="mt-6 grid gap-4">
-    {confirmations.length === 0 ? (
+    {confirmationResult.items.length === 0 ? (
       <div class="soft-card p-8 text-center text-[#70675e]">Belum ada konfirmasi pembayaran.</div>
-    ) : confirmations.map((confirmation) => (
+    ) : confirmationResult.items.map((confirmation) => (
       <article class="soft-card grid gap-5 p-5 lg:grid-cols-[1fr_auto] lg:items-start">
         <div>
           <div class="flex flex-wrap items-center gap-2">
@@ -100,5 +116,10 @@ try {
         </div>
       </article>
     ))}
+    {!errorMessage && (
+      <div class="soft-card overflow-hidden">
+        <AdminPagination page={pagination.page} perPage={pagination.perPage} total={confirmationResult.total} label="konfirmasi" />
+      </div>
+    )}
   </section>
 </AdminShell>

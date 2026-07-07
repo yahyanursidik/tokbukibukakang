@@ -1,0 +1,64 @@
+---
+import { adminPerPageOptions } from '@/lib/admin/pagination';
+
+type Props = {
+  page: number;
+  perPage: number;
+  total: number;
+  label?: string;
+};
+
+const { page, perPage, total, label = 'item' } = Astro.props;
+const totalPages = Math.max(1, Math.ceil(total / perPage));
+const currentPage = Math.min(page, totalPages);
+const firstItem = total === 0 ? 0 : (currentPage - 1) * perPage + 1;
+const lastItem = Math.min(total, currentPage * perPage);
+const preservedParams = Array.from(Astro.url.searchParams.entries()).filter(
+  ([key]) => key !== 'page' && key !== 'per_page'
+);
+
+const buildPageUrl = (targetPage: number) => {
+  const url = new URL(Astro.url);
+  url.searchParams.set('page', String(targetPage));
+  url.searchParams.set('per_page', String(perPage));
+  return `${url.pathname}${url.search}`;
+};
+---
+
+<div class="flex flex-col gap-4 border-t border-[#eadcc7] bg-white/55 p-5 text-sm text-[#70675e] lg:flex-row lg:items-center lg:justify-between">
+  <p>
+    Menampilkan <strong class="text-ink">{firstItem}-{lastItem}</strong> dari <strong class="text-ink">{total}</strong> {label}.
+  </p>
+
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+    <form class="flex items-center gap-2" method="get">
+      {preservedParams.map(([key, value]) => <input type="hidden" name={key} value={value} />)}
+      <input type="hidden" name="page" value="1" />
+      <label class="text-xs font-bold uppercase tracking-[0.12em] text-date" for="admin-per-page">Per halaman</label>
+      <select
+        id="admin-per-page"
+        class="rounded-full border border-[#eadcc7] bg-white px-3 py-2 text-sm font-semibold text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30"
+        name="per_page"
+        onchange="this.form?.submit()"
+      >
+        {adminPerPageOptions.map((option) => <option value={option} selected={option === perPage}>{option}</option>)}
+      </select>
+    </form>
+
+    <nav class="flex items-center gap-2" aria-label="Pagination admin">
+      {currentPage <= 1 ? (
+        <span class="rounded-full border border-[#eadcc7] bg-parchment/70 px-4 py-2 text-sm font-bold text-[#9d9185]">Sebelumnya</span>
+      ) : (
+        <a class="rounded-full border border-date/25 bg-white px-4 py-2 text-sm font-bold text-date hover:bg-parchment" href={buildPageUrl(currentPage - 1)}>Sebelumnya</a>
+      )}
+      <span class="rounded-full bg-ink px-4 py-2 text-sm font-bold text-cream">
+        {currentPage}/{totalPages}
+      </span>
+      {currentPage >= totalPages ? (
+        <span class="rounded-full border border-[#eadcc7] bg-parchment/70 px-4 py-2 text-sm font-bold text-[#9d9185]">Berikutnya</span>
+      ) : (
+        <a class="rounded-full border border-date/25 bg-white px-4 py-2 text-sm font-bold text-date hover:bg-parchment" href={buildPageUrl(currentPage + 1)}>Berikutnya</a>
+      )}
+    </nav>
+  </div>
+</div>
