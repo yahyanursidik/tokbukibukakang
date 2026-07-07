@@ -87,7 +87,7 @@ export const contentCollections: Record<ContentCollectionKey, CollectionConfig> 
       { name: 'short_description', label: 'Deskripsi singkat', type: 'textarea', required: true },
       { name: 'review_summary', label: 'Ringkasan resensi', type: 'textarea', required: true },
       { name: 'parent_notes', label: 'Catatan orang tua', type: 'textarea', required: true },
-      { name: 'manhaj_notes', label: 'Catatan kurasi Ibu Kakang', type: 'textarea', required: true },
+      { name: 'manhaj_notes', label: 'Catatan kurasi Books by Ibunya Kakang', type: 'textarea', required: true },
       {
         name: 'stock_type',
         label: 'Tipe stok',

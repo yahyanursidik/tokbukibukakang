@@ -7,7 +7,7 @@ type Props = {
   currentPath: string;
 };
 
-const { title, description = 'Admin Ibu Kakang BookStore', currentPath } = Astro.props;
+const { title, description = 'Ibu Kakang - Books by Ibunya Kakang', currentPath } = Astro.props;
 
 const adminNav = [
   { label: 'Overview', href: '/admin' },
@@ -33,7 +33,7 @@ const isActive = (href: string) => {
 <BaseLayout title={title} description={description}>
   <section class="page-shell py-6 sm:py-10">
     <div class="mb-6 flex flex-col gap-4 rounded-[24px] border border-[#eadcc7] bg-white/76 p-3 shadow-soft sm:flex-row sm:items-center sm:justify-between sm:p-4">
-      <nav class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Navigasi admin">
+      <nav class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Navigasi Ibu Kakang">
         {
           adminNav.map((item) => (
             <a class="nav-link" data-active={isActive(item.href)} href={item.href}>

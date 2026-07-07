@@ -32,12 +32,12 @@ try {
 }
 ---
 
-<AdminShell title="Admin Settings" currentPath={Astro.url.pathname}>
+<AdminShell title="Settings Ibu Kakang" currentPath={Astro.url.pathname}>
   <div class="watercolor-panel p-6 sm:p-8">
     <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Settings</p>
     <h1 class="mt-3 font-serif text-4xl font-bold text-ink">Invoice dan pembayaran</h1>
     <p class="mt-3 max-w-2xl text-[#70675e]">
-      Atur rekening, QRIS, dan instruksi konfirmasi yang akan muncul di invoice publik dan template WhatsApp admin.
+      Atur rekening, QRIS, dan instruksi konfirmasi yang akan muncul di invoice publik dan template WhatsApp Ibu Kakang.
     </p>
   </div>
 
@@ -90,7 +90,7 @@ try {
 
       <div class="grid gap-4 md:grid-cols-2">
         <label class="grid gap-2 text-sm font-bold text-[#5f564e]">
-          WhatsApp admin
+          WhatsApp Ibu Kakang
           <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="whatsapp_admin_phone" value={settings.whatsapp_admin_phone ?? ''} placeholder="Contoh: 62812..." />
           <span class="text-xs font-medium text-[#82766b]">Ditampilkan di invoice untuk bantuan dan konfirmasi manual.</span>
         </label>

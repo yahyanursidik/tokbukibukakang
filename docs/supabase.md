@@ -37,7 +37,7 @@ SUPABASE_SERVICE_ROLE_KEY="your-server-only-service-role-key"
 ## Manual Migration
 
 1. Open Supabase Dashboard.
-2. Select the project for Ibu Kakang BookStore.
+2. Select the project for Books by Ibunya Kakang.
 3. Go to SQL Editor.
 4. Open `supabase/migrations/0001_transaction_schema.sql`.
 5. Paste the full SQL into the editor.

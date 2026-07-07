@@ -4,10 +4,10 @@ export type NavItem = {
 };
 
 export const siteConfig = {
-  name: 'Ibu Kakang BookStore',
+  name: 'Books by Ibunya Kakang',
   tagline: 'Toko buku anak Islami yang hangat untuk keluarga.',
   description:
-    'Ibu Kakang BookStore menyediakan buku anak Islami, resensi bacaan keluarga, dan informasi pre-order dengan nuansa ramah orang tua.',
+    'Books by Ibunya Kakang menyediakan buku anak Islami, resensi bacaan keluarga, dan informasi pre-order dengan nuansa ramah orang tua.',
   logoPath: '/brand/ibu-kakang-logo.png',
   faviconPath: '/brand/favicon.png',
   navItems: [
@@ -30,7 +30,7 @@ export const placeholderPages = {
     eyebrow: 'Bismillah, sedang disiapkan',
     title: 'Bookstore anak Islami yang lembut, rapi, dan mudah dijelajahi.',
     description:
-      'Halaman awal ini akan menjadi pintu masuk untuk koleksi buku, resensi, pre-order, panduan belanja, dan informasi Ibu Kakang BookStore.',
+      'Halaman awal ini akan menjadi pintu masuk untuk koleksi buku, resensi, pre-order, panduan belanja, dan informasi Books by Ibunya Kakang.',
     accent: 'book'
   },
   books: {
@@ -91,7 +91,7 @@ export const placeholderPages = {
   },
   about: {
     eyebrow: 'Tentang',
-    title: 'Kisah Ibu Kakang BookStore akan ditulis di sini.',
+    title: 'Kisah Books by Ibunya Kakang akan ditulis di sini.',
     description:
       'Ruang untuk memperkenalkan nilai toko, kurasi buku, dan cara mendampingi keluarga memilih bacaan anak.',
     accent: 'flower'

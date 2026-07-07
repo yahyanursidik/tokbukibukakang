@@ -1,4 +1,4 @@
-# Admin Dashboard
+# Dashboard Ibu Kakang
 
 The admin dashboard is a server-rendered Astro area under `/admin`. It now covers transaction operations and the custom content CMS.
 
@@ -42,7 +42,7 @@ Admin invoice links and payment settings are prepared by:
 supabase/migrations/0006_invoice_payment_settings.sql
 ```
 
-- `/admin/settings` stores bank transfer details, QRIS image, WhatsApp admin, confirmation notes, and invoice footer.
+- `/admin/settings` stores bank transfer details, QRIS image, WhatsApp Ibu Kakang, confirmation notes, and invoice footer.
 - `/admin/orders` links each order to its public invoice page.
 - `/admin/orders/[id]` builds WhatsApp templates with the public invoice link and payment confirmation link.
 - `/invoice/[token]` displays the customer-facing invoice with order items, total, bank/QRIS payment details, and confirmation instructions.

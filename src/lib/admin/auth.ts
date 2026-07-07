@@ -68,7 +68,7 @@ export const verifySupabaseAdminLogin = async (email: string, password: string) 
     .single();
 
   if (profileError || !adminProfile) {
-    throw new Error('User Supabase ini belum terdaftar sebagai admin.');
+    throw new Error('User Supabase ini belum terdaftar untuk mengelola toko.');
   }
 
   if (!data.session?.access_token) {

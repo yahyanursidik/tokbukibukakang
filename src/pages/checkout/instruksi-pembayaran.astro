@@ -4,7 +4,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 
 <BaseLayout
   title="Instruksi Pembayaran"
-  description="Instruksi transfer bank untuk pesanan manual Ibu Kakang BookStore."
+  description="Instruksi transfer bank untuk pesanan manual Books by Ibunya Kakang."
 >
   <section class="page-shell py-10 sm:py-14">
     <div class="watercolor-panel p-6 sm:p-8 lg:p-10">
@@ -17,7 +17,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             Pesanan dibuat. Silakan transfer sesuai invoice.
           </h1>
           <p class="mt-5 max-w-2xl text-base text-[#5f564e] sm:text-lg">
-            Simpan nomor invoice dan lanjutkan konfirmasi pembayaran setelah transfer. Admin akan memverifikasi secara manual.
+            Simpan nomor invoice dan lanjutkan konfirmasi pembayaran setelah transfer. Ibu Kakang akan memverifikasi secara manual.
           </p>
         </div>
         <div class="payment-motif" aria-hidden="true">
@@ -38,7 +38,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
         </div>
 
         <div class="mt-6 hidden rounded-3xl border border-date/25 bg-parchment/80 p-4 text-sm font-semibold text-date" data-payment-missing>
-          Ringkasan pesanan tidak ditemukan di sesi browser ini. Jika sudah membuat pesanan, gunakan nomor invoice pada pesan admin atau ulangi dari keranjang.
+          Ringkasan pesanan tidak ditemukan di sesi browser ini. Jika sudah membuat pesanan, gunakan nomor invoice pada pesan Ibu Kakang atau ulangi dari keranjang.
         </div>
 
         <div class="mt-6 grid gap-4" data-payment-summary>
@@ -51,7 +51,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             </div>
             <div class="flex items-center justify-between gap-4">
               <dt class="text-[#70675e]">Ongkir</dt>
-              <dd class="font-bold text-ink" data-payment-shipping>Dikonfirmasi admin</dd>
+              <dd class="font-bold text-ink" data-payment-shipping>Dikonfirmasi Ibu Kakang</dd>
             </div>
             <div class="flex items-center justify-between gap-4 border-t border-[#eadcc7] pt-3">
               <dt class="font-bold text-date">Total transfer sementara</dt>
@@ -69,11 +69,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
           <p class="mt-4 text-sm text-[#70675e]">Nomor rekening</p>
           <p class="mt-1 text-xl font-bold text-date">0000000000</p>
           <p class="mt-4 text-sm text-[#70675e]">Atas nama</p>
-          <p class="mt-1 font-bold text-ink">Ibu Kakang BookStore</p>
+          <p class="mt-1 font-bold text-ink">Books by Ibunya Kakang</p>
         </div>
 
         <ol class="mt-5 grid gap-3 text-sm text-[#70675e]">
-          <li class="rounded-3xl border border-[#eadcc7] bg-white/60 p-3">Transfer sesuai total sementara. Ongkir final dapat dikonfirmasi admin jika perlu penyesuaian.</li>
+          <li class="rounded-3xl border border-[#eadcc7] bg-white/60 p-3">Transfer sesuai total sementara. Ongkir final dapat dikonfirmasi Ibu Kakang jika perlu penyesuaian.</li>
           <li class="rounded-3xl border border-[#eadcc7] bg-white/60 p-3">Simpan bukti transfer agar mudah diverifikasi.</li>
           <li class="rounded-3xl border border-[#eadcc7] bg-white/60 p-3">Kirim konfirmasi pembayaran melalui halaman konfirmasi.</li>
         </ol>
@@ -83,7 +83,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
             Konfirmasi pembayaran
           </a>
           <a class="inline-flex items-center justify-center rounded-full border border-date/25 bg-white/72 px-5 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href="https://wa.me/620000000000" data-payment-help-link>
-            Hubungi admin WhatsApp
+            Hubungi Ibu Kakang via WhatsApp
           </a>
         </div>
       </aside>
@@ -181,7 +181,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     }
 
     if (shippingElement) {
-      shippingElement.textContent = order.shippingCost > 0 ? formatRupiah(order.shippingCost) : 'Dikonfirmasi admin';
+      shippingElement.textContent = order.shippingCost > 0 ? formatRupiah(order.shippingCost) : 'Dikonfirmasi Ibu Kakang';
     }
 
     if (totalElement) {

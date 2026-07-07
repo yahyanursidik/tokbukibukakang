@@ -10,12 +10,12 @@ export type PaymentSettingsRow = Database['public']['Tables']['payment_settings'
 export const defaultPaymentSettings = {
   bank_name: 'Bank Syariah Indonesia',
   account_number: '0000000000',
-  account_holder: 'Ibu Kakang BookStore',
+  account_holder: 'Books by Ibunya Kakang',
   qris_image_url: '',
   qris_note: '',
   whatsapp_admin_phone: '',
   payment_confirmation_notes:
-    'Setelah transfer, mohon konfirmasi pembayaran melalui halaman konfirmasi agar admin dapat memverifikasi pesanan.',
+    'Setelah transfer, mohon konfirmasi pembayaran melalui halaman konfirmasi agar Ibu Kakang dapat memverifikasi pesanan.',
   invoice_footer:
     'Jazakumullahu khairan. Semoga Allah memberkahi keluarga Bapak/Ibu dan menjadikan bacaan ini bermanfaat.'
 } satisfies Omit<Database['public']['Tables']['payment_settings']['Insert'], 'id'>;

@@ -85,7 +85,7 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
             <span class={`rounded-full px-3 py-1 text-xs font-bold ${data.stockType === 'preorder' ? 'bg-honey text-date' : 'bg-mint text-[#36543c]'}`}>
               {data.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}
             </span>
-            {data.featured && <span class="rounded-full bg-white/72 px-3 py-1 text-xs font-bold text-date">Pilihan Ibu Kakang</span>}
+            {data.featured && <span class="rounded-full bg-white/72 px-3 py-1 text-xs font-bold text-date">Pilihan Books by Ibunya Kakang</span>}
           </div>
 
           <h1 class="mt-5 font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl">{data.title}</h1>
@@ -194,7 +194,7 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
 
       <aside class="grid gap-4">
         <article class="soft-card p-6 sm:p-8">
-          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Catatan kurasi Ibu Kakang</p>
+          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Catatan kurasi Books by Ibunya Kakang</p>
           <p class="mt-4 text-[#5f564e]">
             Buku ini diposisikan sebagai bacaan keluarga yang dapat dibaca perlahan, ditemani percakapan, dan disesuaikan dengan kesiapan anak.
           </p>

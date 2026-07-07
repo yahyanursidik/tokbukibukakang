@@ -7,7 +7,7 @@ export const CHECKOUT_ORDER_STORAGE_KEY = 'ibu-kakang-latest-order';
 export const bankTransferInfo = {
   bankName: 'Bank Syariah Indonesia',
   accountNumber: '0000000000',
-  accountName: 'Ibu Kakang BookStore'
+  accountName: 'Books by Ibunya Kakang'
 } as const;
 
 export type CheckoutFormValues = {

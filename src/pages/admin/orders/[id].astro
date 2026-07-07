@@ -67,7 +67,7 @@ try {
   errorMessage = error instanceof Error ? error.message : 'Detail order belum dapat dimuat.';
 }
 
-const brandName = 'Ibu Kakang BookStore';
+const brandName = 'Books by Ibunya Kakang';
 
 const normalizeWhatsappNumber = (value: string) => {
   const digits = value.replace(/\D/g, '');
@@ -94,7 +94,7 @@ const buildInvoiceTemplates = (orderDetail: NonNullable<typeof detail>) => {
   const paymentConfirmationLink = `${Astro.url.origin}/konfirmasi-pembayaran?invoice=${encodeURIComponent(order.order_number)}`;
   const paymentInstruction = paymentSettings
     ? buildPaymentInstructionText(paymentSettings)
-    : 'Metode pembayaran akan dikonfirmasi admin.';
+    : 'Metode pembayaran akan dikonfirmasi Ibu Kakang.';
   const paymentConfirmationNotes =
     paymentSettings?.payment_confirmation_notes ||
     'Setelah transfer, mohon konfirmasi pembayaran melalui halaman konfirmasi.';
@@ -105,7 +105,7 @@ const buildInvoiceTemplates = (orderDetail: NonNullable<typeof detail>) => {
   const shippingLine =
     order.shipping_cost > 0
       ? `Ongkir: ${formatRupiah(order.shipping_cost)}`
-      : 'Ongkir: akan dikonfirmasi admin jika ada penyesuaian.';
+      : 'Ongkir: akan dikonfirmasi Ibu Kakang jika ada penyesuaian.';
   const customerName = order.customer_name || 'Bapak/Ibu';
   const invoiceText = [
     `Assalamu'alaikum warahmatullahi wabarakatuh, ${customerName}.`,
@@ -162,7 +162,7 @@ const buildInvoiceTemplates = (orderDetail: NonNullable<typeof detail>) => {
     {
       key: 'payment-confirmed',
       label: 'Payment confirmed',
-      description: 'Kabarkan pembayaran sudah diverifikasi admin.',
+      description: 'Kabarkan pembayaran sudah diverifikasi Ibu Kakang.',
       message: [
         `Assalamu'alaikum warahmatullahi wabarakatuh, ${customerName}.`,
         '',
@@ -211,7 +211,7 @@ const buildInvoiceTemplates = (orderDetail: NonNullable<typeof detail>) => {
         `Alhamdulillah, pesanan invoice ${order.order_number} kami tandai selesai.`,
         'Semoga buku-bukunya menjadi teman tumbuh yang baik dan membawa manfaat untuk keluarga.',
         '',
-        'Jazakumullahu khairan sudah berbelanja di Ibu Kakang BookStore.',
+        'Jazakumullahu khairan sudah berbelanja di Books by Ibunya Kakang.',
         'Semoga Allah memberkahi waktu belajar dan membaca bersama anak-anak.',
         brandName
       ].join('\n')

@@ -32,7 +32,7 @@ const normalizeWhatsappNumber = (value: string) => {
 const adminWhatsapp = settings.whatsapp_admin_phone ? normalizeWhatsappNumber(settings.whatsapp_admin_phone) : '';
 ---
 
-<BaseLayout title={`Invoice ${order.order_number}`} description={`Invoice pembayaran ${order.order_number} Ibu Kakang BookStore`}>
+<BaseLayout title={`Invoice ${order.order_number}`} description={`Invoice pembayaran ${order.order_number} Books by Ibunya Kakang`}>
   <section class="page-shell py-10 sm:py-14">
     <article class="watercolor-panel p-6 sm:p-8 lg:p-10">
       <div class="flex flex-wrap items-start justify-between gap-4">
@@ -87,7 +87,7 @@ const adminWhatsapp = settings.whatsapp_admin_phone ? normalizeWhatsappNumber(se
           <div class="mt-5 flex flex-wrap gap-3">
             <a class="button-primary" href={confirmationUrl}>Konfirmasi pembayaran</a>
             {adminWhatsapp && (
-              <a class="button-secondary" href={`https://wa.me/${adminWhatsapp}`} target="_blank" rel="noreferrer">Hubungi admin</a>
+              <a class="button-secondary" href={`https://wa.me/${adminWhatsapp}`} target="_blank" rel="noreferrer">Hubungi Ibu Kakang</a>
             )}
           </div>
         </article>
