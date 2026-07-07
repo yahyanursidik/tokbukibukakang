@@ -16,24 +16,64 @@ const normalizePath = (path: string) => {
 };
 
 const activePath = normalizePath(currentPath);
-const isActive = (href: string) => normalizePath(href) === activePath;
+const isActive = (href: string) => {
+  const normalizedHref = normalizePath(href);
+
+  if (normalizedHref === '/') {
+    return activePath === '/';
+  }
+
+  return activePath === normalizedHref || activePath.startsWith(`${normalizedHref}/`);
+};
+
+const primaryNavItems = siteConfig.navItems.filter((item) =>
+  ['/', '/buku', '/resensi', '/po', '/keranjang'].includes(item.href)
+);
+const secondaryNavItems = siteConfig.navItems.filter(
+  (item) => !primaryNavItems.some((primaryItem) => primaryItem.href === item.href)
+);
+const hasActiveSecondaryItem = secondaryNavItems.some((item) => isActive(item.href));
+
+const bottomNavItems = [
+  { label: 'Beranda', href: '/', icon: 'home', hasCartBadge: false },
+  { label: 'Buku', href: '/buku', icon: 'book', hasCartBadge: false },
+  { label: 'PO', href: '/po', icon: 'package', hasCartBadge: false },
+  { label: 'Keranjang', href: '/keranjang', icon: 'cart', hasCartBadge: true }
+] as const;
+
+const mobileMoreItems = siteConfig.navItems.filter(
+  (item) => !bottomNavItems.some((bottomItem) => bottomItem.href === item.href)
+);
+const hasActiveMobileMoreItem = mobileMoreItems.some((item) => isActive(item.href));
+
+const iconPaths = {
+  home: ['M3 10.5 12 3l9 7.5', 'M5.5 9v11h13V9', 'M9.5 20v-6h5v6'],
+  book: ['M5 4.5h9a3 3 0 0 1 3 3V20H8a3 3 0 0 0-3 3V4.5Z', 'M17 7.5h2a2 2 0 0 1 2 2V20h-4', 'M8 8h5', 'M8 12h5'],
+  package: ['M4 8.5 12 4l8 4.5-8 4.5L4 8.5Z', 'M4 8.5V16.5L12 21l8-4.5V8.5', 'M12 13v8'],
+  cart: ['M4 5h2l2 10h9l2-7H7', 'M10 20h.01', 'M17 20h.01'],
+  menu: ['M5 7h14', 'M5 12h14', 'M5 17h14']
+} as const;
 ---
 
-<header class="sticky top-0 z-30 border-b border-[#eadcc7]/80 bg-[#fff8ef]/88 backdrop-blur-md">
-  <div class="page-shell flex min-h-20 items-center justify-between gap-4 py-3">
+<header class="sticky top-0 z-30 border-b border-[#eadcc7]/80 bg-[#fff8ef]/92 backdrop-blur-md">
+  <div class="page-shell flex min-h-[72px] items-center justify-between gap-3 py-2.5 sm:min-h-20 sm:py-3">
     <a href="/" class="flex min-w-0 items-center gap-3" aria-label={`${siteConfig.name} beranda`}>
-      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-date/30 bg-parchment shadow-soft">
-        <span class="h-6 w-7 rounded-sm rounded-l-lg border-2 border-date bg-sky shadow-[12px_0_0_#f2ca7e]"></span>
-      </span>
+      <img
+        class="h-12 w-12 shrink-0 rounded-2xl border border-date/15 bg-[#fffaf1] object-contain p-1.5 shadow-soft sm:h-14 sm:w-14"
+        src={siteConfig.logoPath}
+        alt=""
+        loading="eager"
+        decoding="async"
+      />
       <span class="min-w-0">
-        <span class="block truncate font-serif text-xl font-bold leading-tight text-ink">{siteConfig.name}</span>
-        <span class="block truncate text-xs font-semibold uppercase tracking-[0.16em] text-date">Bookstore anak Islami</span>
+        <span class="block truncate font-serif text-base font-bold leading-tight text-ink sm:text-xl">Ibu Kakang</span>
+        <span class="block truncate text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-date sm:text-xs">BookStore</span>
       </span>
     </a>
 
-    <nav class="hidden max-w-[720px] flex-wrap justify-end gap-1 md:flex" aria-label="Navigasi utama">
+    <nav class="hidden items-center justify-end gap-1 lg:flex" aria-label="Navigasi utama">
       {
-        siteConfig.navItems.map((item) => (
+        primaryNavItems.map((item) => (
           <a class="nav-link" href={item.href} data-active={isActive(item.href)}>
             {item.label}
             {item.href === '/keranjang' && (
@@ -44,34 +84,71 @@ const isActive = (href: string) => normalizePath(href) === activePath;
           </a>
         ))
       }
+
+      <details class="group relative">
+        <summary
+          class="nav-link flex cursor-pointer list-none items-center gap-1"
+          data-active={hasActiveSecondaryItem}
+          aria-label="Menu lainnya"
+        >
+          Lainnya
+          <span class="h-1.5 w-1.5 rotate-45 border-b-2 border-r-2 border-current transition group-open:rotate-[225deg]" aria-hidden="true"></span>
+        </summary>
+        <nav class="soft-card absolute right-0 mt-3 grid w-56 gap-1 p-3 shadow-soft" aria-label="Navigasi lainnya">
+          {
+            secondaryNavItems.map((item) => (
+              <a class="nav-link" href={item.href} data-active={isActive(item.href)}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </details>
     </nav>
 
-    <details class="group relative md:hidden">
-      <summary class="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-2xl border border-date/20 bg-white/70 text-ink shadow-soft transition hover:bg-parchment focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-date">
-        <span class="sr-only">Buka navigasi</span>
-        <span class="flex h-4 w-5 flex-col justify-between">
-          <span class="h-0.5 rounded-full bg-ink"></span>
-          <span class="h-0.5 rounded-full bg-ink"></span>
-          <span class="h-0.5 rounded-full bg-ink"></span>
-        </span>
-      </summary>
-      <nav class="soft-card absolute right-0 mt-3 grid w-[min(86vw,320px)] gap-1 p-3" aria-label="Navigasi mobile">
-        {
-          siteConfig.navItems.map((item) => (
-            <a class="nav-link" href={item.href} data-active={isActive(item.href)}>
-              {item.label}
-              {item.href === '/keranjang' && (
-                <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-honey px-1.5 py-0.5 text-[0.68rem] font-bold leading-none text-date" data-cart-count>
-                  0
-                </span>
-              )}
-            </a>
-          ))
-        }
-      </nav>
-    </details>
+    <span class="lg:hidden" aria-hidden="true"></span>
   </div>
 </header>
+
+<nav class="mobile-bottom-nav lg:hidden" aria-label="Navigasi bawah mobile">
+  <div class="mobile-bottom-nav__inner">
+    {
+      bottomNavItems.map((item) => (
+        <a class="mobile-bottom-link" href={item.href} data-active={isActive(item.href)} aria-label={item.label === 'Keranjang' ? 'Keranjang belanja' : item.label}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            {iconPaths[item.icon].map((path) => <path d={path} />)}
+          </svg>
+          <span>{item.label}</span>
+          {item.hasCartBadge && (
+            <span class="mobile-bottom-badge" data-cart-count>
+              0
+            </span>
+          )}
+        </a>
+      ))
+    }
+
+    <details class="contents" data-mobile-nav-more>
+      <summary class="mobile-bottom-link cursor-pointer list-none" data-active={hasActiveMobileMoreItem} aria-label="Buka menu lainnya">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          {iconPaths.menu.map((path) => <path d={path} />)}
+        </svg>
+        <span>Menu</span>
+      </summary>
+      <div class="mobile-more-panel">
+        <div class="grid gap-1">
+          {
+            mobileMoreItems.map((item) => (
+              <a class="mobile-more-link" href={item.href} data-active={isActive(item.href)}>
+                <span>{item.label}</span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </details>
+  </div>
+</nav>
 
 <script>
   import { CART_UPDATED_EVENT, getTotalItems, readCart } from '@/lib/cart';
@@ -90,6 +167,24 @@ const isActive = (href: string) => normalizePath(href) === activePath;
   window.addEventListener('storage', (event) => {
     if (event.key === 'ibu-kakang-cart') {
       updateCartBadges();
+    }
+  });
+
+  const mobileMoreMenu = document.querySelector<HTMLDetailsElement>('[data-mobile-nav-more]');
+
+  document.addEventListener('click', (event) => {
+    if (!mobileMoreMenu?.open || event.target instanceof Node === false) {
+      return;
+    }
+
+    if (!mobileMoreMenu.contains(event.target)) {
+      mobileMoreMenu.open = false;
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && mobileMoreMenu?.open) {
+      mobileMoreMenu.open = false;
     }
   });
 </script>

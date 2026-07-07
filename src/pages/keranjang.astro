@@ -17,7 +17,7 @@ const page = placeholderPages.cart;
             Simpan pilihan buku sebelum checkout manual.
           </h1>
           <p class="mt-5 max-w-2xl text-base text-[#5f564e] sm:text-lg">
-            Keranjang tersimpan di browser ini memakai localStorage. Belum ada login atau database, dan isi keranjang tidak akan dikosongkan sampai checkout berhasil pada tahap berikutnya.
+            Keranjang tersimpan di browser ini. Tidak perlu login, dan isi keranjang hanya dikosongkan setelah pesanan berhasil dibuat.
           </p>
         </div>
         <div class="cart-motif" aria-hidden="true">
@@ -29,13 +29,13 @@ const page = placeholderPages.cart;
     </div>
 
     <section class="mt-8">
-      <div class="soft-card hidden p-8 text-center" data-cart-empty>
-        <div class="mx-auto mb-5 h-20 w-20 rounded-3xl border border-date/20 bg-parchment"></div>
+      <div class="empty-state hidden" data-cart-empty>
+        <div class="motif motif-package mx-auto mb-5 scale-75" aria-hidden="true"></div>
         <h2 class="font-serif text-3xl font-bold text-ink">Keranjang masih kosong.</h2>
         <p class="mx-auto mt-3 max-w-md text-sm text-[#70675e]">
           Pilih buku dari katalog atau halaman PO, lalu kembali ke sini untuk mengatur jumlahnya.
         </p>
-        <a class="mt-6 inline-flex rounded-full bg-ink px-6 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date" href="/buku">
+        <a class="button-primary mt-6" href="/buku">
           Lanjut belanja
         </a>
       </div>
@@ -59,10 +59,10 @@ const page = placeholderPages.cart;
             Ongkir dan invoice final akan dikonfirmasi admin pada alur checkout manual.
           </p>
           <div class="mt-5 grid gap-2">
-            <a class="inline-flex items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date" href="/checkout">
+            <a class="button-primary" href="/checkout">
               Lanjut ke checkout
             </a>
-            <a class="inline-flex items-center justify-center rounded-full border border-date/25 bg-white/72 px-5 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href="/buku">
+            <a class="button-secondary" href="/buku">
               Lanjut belanja
             </a>
           </div>

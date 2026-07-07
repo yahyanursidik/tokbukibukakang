@@ -1,0 +1,134 @@
+---
+import AdminShell from '@/components/AdminShell.astro';
+import { isAdminAuthenticated } from '@/lib/admin/auth';
+import { createAdminManualOrder, formatRupiah } from '@/lib/admin/orders';
+import { listPublicBooks } from '@/lib/content/public';
+
+export const prerender = false;
+
+if (!(await isAdminAuthenticated(Astro.cookies))) {
+  return Astro.redirect(`/admin?next=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+let errorMessage = '';
+let redirectPath = '';
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const selectedSlugs = formData.getAll('book_slug').map((value) => String(value));
+
+  try {
+    const createdOrder = await createAdminManualOrder({
+      customerName: String(formData.get('customer_name') ?? ''),
+      customerPhone: String(formData.get('customer_phone') ?? ''),
+      customerEmail: String(formData.get('customer_email') ?? ''),
+      customerAddress: String(formData.get('customer_address') ?? ''),
+      notes: String(formData.get('notes') ?? ''),
+      shippingCost: Number(formData.get('shipping_cost') ?? 0),
+      items: selectedSlugs.map((bookSlug) => ({
+        bookSlug,
+        quantity: Number(formData.get(`quantity_${bookSlug}`) ?? 1)
+      }))
+    });
+    redirectPath = `/admin/orders/${createdOrder.order_id}#invoice-whatsapp`;
+  } catch (error) {
+    errorMessage = error instanceof Error ? error.message : 'Invoice belum berhasil dibuat.';
+  }
+}
+
+if (redirectPath) {
+  return Astro.redirect(redirectPath);
+}
+
+let books: Awaited<ReturnType<typeof listPublicBooks>> = [];
+
+try {
+  books = await listPublicBooks();
+} catch (error) {
+  errorMessage = error instanceof Error ? error.message : 'Daftar buku belum dapat dimuat.';
+}
+---
+
+<AdminShell title="Buat Invoice" currentPath="/admin/orders">
+  <div class="watercolor-panel p-6 sm:p-8">
+    <a class="text-sm font-bold text-date hover:text-ink" href="/admin/orders">Kembali ke orders</a>
+    <p class="mt-4 text-sm font-bold uppercase tracking-[0.14em] text-date">Invoice manual</p>
+    <h1 class="mt-3 font-serif text-4xl font-bold text-ink">Buat invoice</h1>
+    <p class="mt-3 max-w-2xl text-[#70675e]">
+      Isi data customer dan pilih buku. Setelah disimpan, admin langsung diarahkan ke template WhatsApp invoice.
+    </p>
+  </div>
+
+  {errorMessage && <div class="mt-6 rounded-3xl border border-date/25 bg-parchment/80 p-4 text-sm font-bold text-date">{errorMessage}</div>}
+
+  <form class="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]" method="post">
+    <section class="grid gap-6">
+      <article class="soft-card p-5 sm:p-6">
+        <h2 class="font-serif text-2xl font-bold text-ink">Data customer</h2>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+          <label class="grid gap-2 text-sm font-bold text-[#5f564e] sm:col-span-2">
+            Nama customer
+            <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="customer_name" required />
+          </label>
+          <label class="grid gap-2 text-sm font-bold text-[#5f564e]">
+            Nomor WhatsApp
+            <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="customer_phone" required placeholder="08xxxxxxxxxx" />
+          </label>
+          <label class="grid gap-2 text-sm font-bold text-[#5f564e]">
+            Email
+            <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="customer_email" type="email" />
+          </label>
+          <label class="grid gap-2 text-sm font-bold text-[#5f564e] sm:col-span-2">
+            Alamat
+            <textarea class="min-h-28 rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="customer_address" required></textarea>
+          </label>
+          <label class="grid gap-2 text-sm font-bold text-[#5f564e]">
+            Ongkir
+            <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="shipping_cost" type="number" min="0" step="1" value="0" />
+          </label>
+          <label class="grid gap-2 text-sm font-bold text-[#5f564e] sm:col-span-2">
+            Catatan
+            <textarea class="min-h-24 rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="notes"></textarea>
+          </label>
+        </div>
+      </article>
+
+      <article class="soft-card p-5 sm:p-6">
+        <h2 class="font-serif text-2xl font-bold text-ink">Pilih buku</h2>
+        {books.length > 0 ? (
+          <div class="mt-5 grid gap-3">
+            {books.map((book) => (
+              <label class="grid gap-3 rounded-3xl border border-[#eadcc7] bg-white/72 p-4 sm:grid-cols-[auto_72px_1fr] sm:items-center">
+                <input class="h-5 w-5 accent-date" name="book_slug" type="checkbox" value={book.slug} />
+                <img class="h-20 w-16 rounded-2xl bg-parchment object-cover" src={book.coverImage} alt={`Sampul ${book.title}`} loading="lazy" />
+                <span class="min-w-0">
+                  <span class="block font-bold text-ink">{book.title}</span>
+                  <span class="mt-1 block text-sm text-[#70675e]">{formatRupiah(book.price)} - {book.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}</span>
+                  <span class="mt-3 inline-flex items-center gap-2 text-sm font-bold text-[#5f564e]">
+                    Qty
+                    <input class="w-24 rounded-full border border-[#eadcc7] bg-white/80 px-3 py-2 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={`quantity_${book.slug}`} type="number" min="1" step="1" value="1" />
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <p class="mt-5 rounded-3xl border border-dashed border-date/25 bg-parchment/60 p-4 text-sm font-semibold text-[#70675e]">
+            Belum ada buku aktif. Tambahkan buku dulu di Content CMS - Buku.
+          </p>
+        )}
+      </article>
+    </section>
+
+    <aside class="soft-card h-fit p-5 sm:p-6 lg:sticky lg:top-28">
+      <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Langkah berikutnya</p>
+      <h2 class="mt-2 font-serif text-2xl font-bold text-ink">Simpan invoice</h2>
+      <p class="mt-3 text-sm text-[#70675e]">
+        Setelah invoice dibuat, halaman detail order akan membuka panel template WhatsApp. Admin bisa copy pesan atau buka `wa.me`.
+      </p>
+      <button class="mt-5 w-full rounded-full bg-ink px-6 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date" type="submit" disabled={books.length === 0}>
+        Buat Invoice
+      </button>
+    </aside>
+  </form>
+</AdminShell>

@@ -24,6 +24,8 @@ const pageTitle = title === siteConfig.name ? title : `${title} | ${siteConfig.n
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/png" href={siteConfig.faviconPath} />
+    <link rel="apple-touch-icon" href={siteConfig.faviconPath} />
     <title>{pageTitle}</title>
   </head>
   <body>

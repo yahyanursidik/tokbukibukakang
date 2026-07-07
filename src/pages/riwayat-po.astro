@@ -1,18 +1,20 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { placeholderPages } from '@/config/site';
-import { getCollection } from 'astro:content';
+import { listPublicBooks, listPublicPoPeriods } from '@/lib/content/public';
+
+export const prerender = false;
 
 const page = placeholderPages.preorderHistory;
-const poPeriods = await getCollection('poPeriods');
-const books = await getCollection('books');
+const poPeriods = await listPublicPoPeriods();
+const books = await listPublicBooks();
 
 const historyPeriods = poPeriods
-  .filter((period) => period.data.status === 'archived' || period.data.status === 'closed')
-  .sort((a, b) => b.data.endDate.getTime() - a.data.endDate.getTime());
+  .filter((period) => period.status === 'archived' || period.status === 'closed')
+  .sort((a, b) => b.endDate.getTime() - a.endDate.getTime());
 
 const getIncludedBooks = (bookSlugs: string[]) =>
-  books.filter((book) => bookSlugs.includes(book.data.slug));
+  books.filter((book) => bookSlugs.includes(book.slug));
 
 const formatDate = new Intl.DateTimeFormat('id-ID', {
   day: 'numeric',
@@ -21,6 +23,8 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
 });
 
 const statusLabels = {
+  draft: 'Draft',
+  open: 'Open',
   closed: 'Closed',
   archived: 'Archived'
 } as const;
@@ -53,19 +57,19 @@ const statusLabels = {
         historyPeriods.length > 0 ? (
           <div class="grid gap-4">
             {historyPeriods.map((period) => {
-              const includedBooks = getIncludedBooks(period.data.bookSlugs);
+              const includedBooks = getIncludedBooks(period.bookSlugs);
 
               return (
                 <article class="soft-card p-5 sm:p-6">
                   <div class="grid gap-5 lg:grid-cols-[1fr_auto]">
                     <div>
                       <span class="inline-flex rounded-full bg-white/70 px-3 py-1 text-xs font-bold text-[#5f564e]">
-                        {statusLabels[period.data.status]}
+                        {statusLabels[period.status]}
                       </span>
-                      <h3 class="mt-3 font-serif text-2xl font-bold text-ink">{period.data.title}</h3>
-                      <p class="mt-3 max-w-3xl text-sm text-[#70675e]">{period.data.description}</p>
+                      <h3 class="mt-3 font-serif text-2xl font-bold text-ink">{period.title}</h3>
+                      <p class="mt-3 max-w-3xl text-sm text-[#70675e]">{period.description}</p>
                     </div>
-                    <a class="inline-flex h-fit items-center justify-center rounded-full border border-date/25 bg-white/70 px-5 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href={`/po/${period.data.slug}`}>
+                    <a class="button-secondary h-fit" href={`/po/${period.slug}`}>
                       Lihat detail arsip
                     </a>
                   </div>
@@ -73,33 +77,34 @@ const statusLabels = {
                   <dl class="mt-5 grid gap-3 text-sm sm:grid-cols-3">
                     <div class="rounded-2xl bg-parchment/70 p-4">
                       <dt class="font-bold text-date">Mulai</dt>
-                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.data.startDate)}</dd>
+                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.startDate)}</dd>
                     </div>
                     <div class="rounded-2xl bg-parchment/70 p-4">
                       <dt class="font-bold text-date">Selesai</dt>
-                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.data.endDate)}</dd>
+                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.endDate)}</dd>
                     </div>
                     <div class="rounded-2xl bg-parchment/70 p-4">
                       <dt class="font-bold text-date">Estimasi kirim</dt>
-                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.data.estimatedShippingDate)}</dd>
+                      <dd class="mt-1 text-[#5f564e]">{formatDate.format(period.estimatedShippingDate)}</dd>
                     </div>
                   </dl>
 
                   <div class="mt-5 flex flex-wrap gap-2">
                     {includedBooks.map((book) => (
-                      <a class="rounded-full border border-date/15 bg-white/70 px-3 py-1 text-xs font-bold text-[#5f564e] hover:text-date" href={`/buku/${book.data.slug}`}>
-                        {book.data.title}
+                      <a class="rounded-full border border-date/15 bg-white/70 px-3 py-1 text-xs font-bold text-[#5f564e] hover:text-date" href={`/buku/${book.slug}`}>
+                        {book.title}
                       </a>
                     ))}
                   </div>
 
-                  {period.data.notes && <p class="mt-5 rounded-2xl bg-white/62 p-4 text-sm text-[#5f564e]">{period.data.notes}</p>}
+                  {period.notes && <p class="mt-5 rounded-2xl bg-white/62 p-4 text-sm text-[#5f564e]">{period.notes}</p>}
                 </article>
               );
             })}
           </div>
         ) : (
-          <div class="soft-card p-6 sm:p-8">
+          <div class="empty-state">
+            <div class="motif motif-paper mx-auto mb-5 scale-75" aria-hidden="true"></div>
             <h3 class="font-serif text-2xl font-bold text-ink">Riwayat PO belum tersedia.</h3>
             <p class="mt-3 max-w-2xl text-sm text-[#70675e]">
               Setelah ada periode yang ditutup atau diarsipkan, catatannya akan tampil di sini.

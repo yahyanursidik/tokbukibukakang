@@ -8,6 +8,8 @@ export const siteConfig = {
   tagline: 'Toko buku anak Islami yang hangat untuk keluarga.',
   description:
     'Ibu Kakang BookStore menyediakan buku anak Islami, resensi bacaan keluarga, dan informasi pre-order dengan nuansa ramah orang tua.',
+  logoPath: '/brand/ibu-kakang-logo.png',
+  faviconPath: '/brand/favicon.png',
   navItems: [
     { label: 'Beranda', href: '/' },
     { label: 'Buku', href: '/buku' },

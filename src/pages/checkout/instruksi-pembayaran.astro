@@ -1,0 +1,229 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Instruksi Pembayaran"
+  description="Instruksi transfer bank untuk pesanan manual Ibu Kakang BookStore."
+>
+  <section class="page-shell py-10 sm:py-14">
+    <div class="watercolor-panel p-6 sm:p-8 lg:p-10">
+      <div class="grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          <p class="mb-4 inline-flex rounded-full border border-date/20 bg-white/60 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-date">
+            Instruksi pembayaran
+          </p>
+          <h1 class="max-w-3xl font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl">
+            Pesanan dibuat. Silakan transfer sesuai invoice.
+          </h1>
+          <p class="mt-5 max-w-2xl text-base text-[#5f564e] sm:text-lg">
+            Simpan nomor invoice dan lanjutkan konfirmasi pembayaran setelah transfer. Admin akan memverifikasi secara manual.
+          </p>
+        </div>
+        <div class="payment-motif" aria-hidden="true">
+          <span class="payment-motif-paper"></span>
+          <span class="payment-motif-leaf"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <section class="soft-card p-5 sm:p-7">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Invoice</p>
+            <h2 class="mt-2 font-serif text-3xl font-bold text-ink" data-payment-invoice>INV-IBK-YYYY-0000</h2>
+          </div>
+          <span class="rounded-full bg-honey px-4 py-2 text-sm font-bold text-date">Menunggu transfer</span>
+        </div>
+
+        <div class="mt-6 hidden rounded-3xl border border-date/25 bg-parchment/80 p-4 text-sm font-semibold text-date" data-payment-missing>
+          Ringkasan pesanan tidak ditemukan di sesi browser ini. Jika sudah membuat pesanan, gunakan nomor invoice pada pesan admin atau ulangi dari keranjang.
+        </div>
+
+        <div class="mt-6 grid gap-4" data-payment-summary>
+          <div class="grid gap-3" data-payment-items></div>
+
+          <dl class="grid gap-3 border-t border-[#eadcc7] pt-4 text-sm">
+            <div class="flex items-center justify-between gap-4">
+              <dt class="text-[#70675e]">Subtotal buku</dt>
+              <dd class="font-bold text-ink" data-payment-subtotal>Rp0</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4">
+              <dt class="text-[#70675e]">Ongkir</dt>
+              <dd class="font-bold text-ink" data-payment-shipping>Dikonfirmasi admin</dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 border-t border-[#eadcc7] pt-3">
+              <dt class="font-bold text-date">Total transfer sementara</dt>
+              <dd class="font-serif text-2xl font-bold text-ink" data-payment-total>Rp0</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <aside class="soft-card h-fit p-5 lg:sticky lg:top-28">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Transfer bank</p>
+        <div class="mt-5 rounded-3xl bg-parchment/70 p-4">
+          <p class="text-sm text-[#70675e]">Bank</p>
+          <p class="mt-1 font-serif text-2xl font-bold text-ink">Bank Syariah Indonesia</p>
+          <p class="mt-4 text-sm text-[#70675e]">Nomor rekening</p>
+          <p class="mt-1 text-xl font-bold text-date">0000000000</p>
+          <p class="mt-4 text-sm text-[#70675e]">Atas nama</p>
+          <p class="mt-1 font-bold text-ink">Ibu Kakang BookStore</p>
+        </div>
+
+        <ol class="mt-5 grid gap-3 text-sm text-[#70675e]">
+          <li class="rounded-3xl border border-[#eadcc7] bg-white/60 p-3">Transfer sesuai total sementara. Ongkir final dapat dikonfirmasi admin jika perlu penyesuaian.</li>
+          <li class="rounded-3xl border border-[#eadcc7] bg-white/60 p-3">Simpan bukti transfer agar mudah diverifikasi.</li>
+          <li class="rounded-3xl border border-[#eadcc7] bg-white/60 p-3">Kirim konfirmasi pembayaran melalui halaman konfirmasi.</li>
+        </ol>
+
+        <div class="mt-5 grid gap-2">
+          <a class="inline-flex items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date" href="/konfirmasi-pembayaran" data-payment-confirm-link>
+            Konfirmasi pembayaran
+          </a>
+          <a class="inline-flex items-center justify-center rounded-full border border-date/25 bg-white/72 px-5 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href="https://wa.me/620000000000" data-payment-help-link>
+            Hubungi admin WhatsApp
+          </a>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { CHECKOUT_ORDER_STORAGE_KEY, type StoredCheckoutOrder } from '@/lib/checkout';
+  import { formatRupiah, type CartItem } from '@/lib/cart';
+
+  const params = new URLSearchParams(window.location.search);
+  const invoiceFromUrl = params.get('invoice');
+  const invoiceElement = document.querySelector<HTMLElement>('[data-payment-invoice]');
+  const missingMessage = document.querySelector<HTMLElement>('[data-payment-missing]');
+  const summaryElement = document.querySelector<HTMLElement>('[data-payment-summary]');
+  const itemsElement = document.querySelector<HTMLElement>('[data-payment-items]');
+  const subtotalElement = document.querySelector<HTMLElement>('[data-payment-subtotal]');
+  const shippingElement = document.querySelector<HTMLElement>('[data-payment-shipping]');
+  const totalElement = document.querySelector<HTMLElement>('[data-payment-total]');
+  const confirmLink = document.querySelector<HTMLAnchorElement>('[data-payment-confirm-link]');
+  const helpLink = document.querySelector<HTMLAnchorElement>('[data-payment-help-link]');
+
+  const escapeHtml = (value: string) =>
+    value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+
+  const parseStoredOrder = (): StoredCheckoutOrder | null => {
+    const rawOrder = window.sessionStorage.getItem(CHECKOUT_ORDER_STORAGE_KEY);
+
+    if (!rawOrder) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(rawOrder) as StoredCheckoutOrder;
+      const matchesInvoice = !invoiceFromUrl || parsed.orderNumber === invoiceFromUrl;
+
+      if (!parsed.orderNumber || !Array.isArray(parsed.items) || !matchesInvoice) {
+        return null;
+      }
+
+      return parsed;
+    } catch {
+      return null;
+    }
+  };
+
+  const renderSummaryItem = (item: CartItem) => {
+    const element = document.createElement('article');
+    element.className = 'rounded-3xl border border-[#eadcc7] bg-white/60 p-3';
+    element.innerHTML = `
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h3 class="font-bold leading-snug text-ink">${escapeHtml(item.title)}</h3>
+          <p class="mt-1 text-sm font-semibold text-[#70675e]">${item.quantity} x ${formatRupiah(item.price)}</p>
+        </div>
+        <p class="shrink-0 text-sm font-bold text-date">${formatRupiah(item.price * item.quantity)}</p>
+      </div>
+    `;
+
+    return element;
+  };
+
+  const renderPayment = () => {
+    const order = parseStoredOrder();
+    const invoiceNumber = order?.orderNumber ?? invoiceFromUrl ?? 'INV-IBK-YYYY-0000';
+
+    if (invoiceElement) {
+      invoiceElement.textContent = invoiceNumber;
+    }
+
+    confirmLink?.setAttribute('href', `/konfirmasi-pembayaran?invoice=${encodeURIComponent(invoiceNumber)}`);
+    helpLink?.setAttribute(
+      'href',
+      `https://wa.me/620000000000?text=${encodeURIComponent(`Assalamu'alaikum, saya ingin bertanya tentang invoice ${invoiceNumber}.`)}`
+    );
+
+    if (!order) {
+      missingMessage?.classList.remove('hidden');
+      summaryElement?.classList.add('hidden');
+      return;
+    }
+
+    missingMessage?.classList.add('hidden');
+    summaryElement?.classList.remove('hidden');
+    itemsElement?.replaceChildren(...order.items.map(renderSummaryItem));
+
+    if (subtotalElement) {
+      subtotalElement.textContent = formatRupiah(order.subtotal);
+    }
+
+    if (shippingElement) {
+      shippingElement.textContent = order.shippingCost > 0 ? formatRupiah(order.shippingCost) : 'Dikonfirmasi admin';
+    }
+
+    if (totalElement) {
+      totalElement.textContent = formatRupiah(order.total);
+    }
+  };
+
+  renderPayment();
+</script>
+
+<style>
+  .payment-motif {
+    height: 170px;
+    position: relative;
+    width: min(240px, 100%);
+  }
+
+  .payment-motif-paper,
+  .payment-motif-leaf {
+    position: absolute;
+  }
+
+  .payment-motif-paper {
+    inset: 22px 52px 20px 20px;
+    border: 2px solid rgba(138, 95, 63, 0.5);
+    border-radius: 24px;
+    background:
+      linear-gradient(180deg, rgba(242, 202, 126, 0.28) 0 34px, transparent 34px),
+      repeating-linear-gradient(180deg, transparent 0 22px, rgba(138, 95, 63, 0.12) 22px 24px),
+      rgba(255, 250, 241, 0.92);
+    box-shadow: 22px 18px 0 rgba(184, 220, 232, 0.42);
+    transform: rotate(-4deg);
+  }
+
+  .payment-motif-leaf {
+    right: 26px;
+    bottom: 24px;
+    height: 70px;
+    width: 92px;
+    border: 2px solid rgba(109, 143, 112, 0.7);
+    border-radius: 70% 18% 70% 18%;
+    background: #b9d8c2;
+    transform: rotate(-20deg);
+  }
+</style>

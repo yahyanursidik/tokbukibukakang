@@ -1,0 +1,54 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+type Props = {
+  title: string;
+  description?: string;
+  currentPath: string;
+};
+
+const { title, description = 'Admin Ibu Kakang BookStore', currentPath } = Astro.props;
+
+const adminNav = [
+  { label: 'Overview', href: '/admin' },
+  { label: 'Content', href: '/admin/content' },
+  { label: 'Orders', href: '/admin/orders' },
+  { label: 'Payments', href: '/admin/payments' },
+  { label: 'Settings', href: '/admin/settings' }
+];
+
+const normalizePath = (path: string) => (path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path);
+const activePath = normalizePath(currentPath);
+const isActive = (href: string) => {
+  const normalizedHref = normalizePath(href);
+
+  if (normalizedHref === '/admin') {
+    return activePath === '/admin';
+  }
+
+  return activePath === normalizedHref || activePath.startsWith(`${normalizedHref}/`);
+};
+---
+
+<BaseLayout title={title} description={description}>
+  <section class="page-shell py-6 sm:py-10">
+    <div class="mb-6 flex flex-col gap-4 rounded-[24px] border border-[#eadcc7] bg-white/76 p-3 shadow-soft sm:flex-row sm:items-center sm:justify-between sm:p-4">
+      <nav class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="Navigasi admin">
+        {
+          adminNav.map((item) => (
+            <a class="nav-link" data-active={isActive(item.href)} href={item.href}>
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+      <form method="post" action="/admin">
+        <input type="hidden" name="_action" value="logout" />
+        <button class="button-secondary w-full px-4 py-2 text-sm text-date sm:w-auto" type="submit">
+          Logout
+        </button>
+      </form>
+    </div>
+    <slot />
+  </section>
+</BaseLayout>

@@ -1,12 +1,14 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const externalReviewSourceSchema = z.object({
   sourceName: z.string(),
-  sourceUrl: z.string().url().optional()
+  sourceUrl: z.url().optional()
 });
 
 const books = defineCollection({
-  type: 'data',
+  loader: glob({ pattern: '**/*.json', base: './src/content/books' }),
   schema: z.object({
     title: z.string(),
     slug: z.string(),
@@ -19,6 +21,7 @@ const books = defineCollection({
     themes: z.array(z.string()).min(1),
     price: z.number().int().min(0),
     coverImage: z.string(),
+    galleryImages: z.array(z.string()).optional(),
     shortDescription: z.string(),
     reviewSummary: z.string(),
     parentNotes: z.string(),
@@ -31,7 +34,7 @@ const books = defineCollection({
 });
 
 const reviews = defineCollection({
-  type: 'data',
+  loader: glob({ pattern: '**/*.json', base: './src/content/reviews' }),
   schema: z.object({
     title: z.string(),
     slug: z.string(),
@@ -40,13 +43,13 @@ const reviews = defineCollection({
     content: z.string(),
     sourceType: z.enum(['original', 'external_summary']),
     sourceName: z.string().optional(),
-    sourceUrl: z.string().url().optional(),
+    sourceUrl: z.url().optional(),
     reviewerNote: z.string().optional()
   })
 });
 
 const poPeriods = defineCollection({
-  type: 'data',
+  loader: glob({ pattern: '**/*.json', base: './src/content/poPeriods' }),
   schema: z.object({
     title: z.string(),
     slug: z.string(),
@@ -61,7 +64,7 @@ const poPeriods = defineCollection({
 });
 
 const pages = defineCollection({
-  type: 'data',
+  loader: glob({ pattern: '**/*.json', base: './src/content/pages' }),
   schema: z.object({
     title: z.string(),
     slug: z.string(),

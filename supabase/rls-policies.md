@@ -4,7 +4,8 @@ The migration enables RLS on all transaction tables.
 
 ## Current Intent
 
-- Anonymous customers can insert `orders`, `order_items`, and `payment_confirmations`.
+- Anonymous customers can create checkout orders through `create_manual_checkout_order`.
+- Anonymous customers can create payment confirmations through `confirm_manual_payment`.
 - Anonymous customers cannot read or update transaction rows by default.
 - Authenticated admins listed in `admin_profiles` can read/update order data.
 - `invoice_logs` are admin-only because they may contain WhatsApp recipients and message content.
@@ -12,8 +13,8 @@ The migration enables RLS on all transaction tables.
 
 ## Before Production
 
-- Prefer server actions for checkout creation so order and order item totals can be validated server-side.
-- If keeping anon inserts, add extra validation at the application layer and consider RPC functions instead of direct table inserts.
+- Move checkout creation to server actions when product pricing moves into the database.
+- Keep validating item totals inside RPC functions, not only in browser code.
 - Never ship `SUPABASE_SERVICE_ROLE_KEY` to browser code.
 - Create admin users through Supabase Auth, then insert their `auth.users.id` into `admin_profiles`.
 - Add storage bucket policies separately if payment proof uploads are enabled.
