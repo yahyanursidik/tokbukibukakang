@@ -1,11 +1,443 @@
 ---
-import PlaceholderPage from '@/components/PlaceholderPage.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import { placeholderPages } from '@/config/site';
-
-const page = placeholderPages.paymentConfirmation;
 ---
 
-<BaseLayout title="Konfirmasi Pembayaran" description={page.description}>
-  <PlaceholderPage {...page} />
+<BaseLayout
+  title="Konfirmasi Pembayaran"
+  description="Konfirmasi transfer manual untuk pesanan Ibu Kakang BookStore."
+>
+  <section class="page-shell py-10 sm:py-14">
+    <div class="watercolor-panel p-6 sm:p-8 lg:p-10">
+      <div class="grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          <p class="mb-4 inline-flex rounded-full border border-date/20 bg-white/60 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-date">
+            Konfirmasi pembayaran
+          </p>
+          <h1 class="max-w-3xl font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl">
+            Kirim bukti transfer untuk diverifikasi admin.
+          </h1>
+          <p class="mt-5 max-w-2xl text-base text-[#5f564e] sm:text-lg">
+            Pembayaran tidak otomatis dikonfirmasi. Admin akan mencocokkan invoice, nomor WhatsApp, dan detail transfer secara manual.
+          </p>
+        </div>
+        <div class="confirmation-motif" aria-hidden="true">
+          <span class="confirmation-motif-paper"></span>
+          <span class="confirmation-motif-flower"></span>
+          <span class="confirmation-motif-bookmark"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <form class="soft-card grid gap-5 p-5 sm:p-7" data-payment-form novalidate>
+        <div>
+          <h2 class="font-serif text-2xl font-bold text-ink">Data transfer</h2>
+          <p class="mt-2 text-sm text-[#70675e]">
+            Gunakan nomor WhatsApp yang sama dengan pesanan agar invoice dapat ditemukan.
+          </p>
+        </div>
+
+        <div class="form-alert hidden border" role="status" aria-live="polite" data-payment-alert></div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="payment-field">
+            <span>Nomor invoice</span>
+            <input name="invoiceNumber" autocomplete="off" required type="text" placeholder="INV-IBK-2026-0001" />
+          </label>
+
+          <label class="payment-field">
+            <span>Nomor WhatsApp</span>
+            <input name="whatsappNumber" autocomplete="tel" required type="tel" inputmode="tel" placeholder="08xxxxxxxxxx" />
+          </label>
+
+          <label class="payment-field">
+            <span>Nama rekening pengirim</span>
+            <input name="senderAccountName" autocomplete="name" required type="text" placeholder="Nama sesuai rekening" />
+          </label>
+
+          <label class="payment-field">
+            <span>Nama bank</span>
+            <input name="bankName" required type="text" placeholder="BSI, BCA, Mandiri" />
+          </label>
+
+          <label class="payment-field">
+            <span>Nominal transfer</span>
+            <input name="transferAmount" required type="number" inputmode="numeric" min="1" step="1" placeholder="150000" />
+          </label>
+
+          <label class="payment-field">
+            <span>Tanggal transfer</span>
+            <input name="transferDate" required type="date" />
+          </label>
+
+          <label class="payment-field sm:col-span-2">
+            <span>Bukti transfer <small data-proof-status></small></span>
+            <input name="proofImage" type="file" accept="image/png,image/jpeg,image/webp" data-proof-input />
+            <p class="text-xs font-medium text-[#70675e]" data-proof-help>
+              Upload bukti transfer belum aktif sampai Supabase Storage bucket dikonfigurasi.
+            </p>
+          </label>
+
+          <label class="payment-field sm:col-span-2">
+            <span>Catatan <small>opsional</small></span>
+            <textarea name="note" rows="3" placeholder="Misal: transfer digabung dengan ongkir yang dikonfirmasi admin"></textarea>
+          </label>
+        </div>
+
+        <div class="flex flex-col gap-3 border-t border-[#eadcc7] pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <a class="button-secondary" href="/checkout/instruksi-pembayaran">
+            Lihat instruksi transfer
+          </a>
+          <button class="button-primary disabled:cursor-not-allowed disabled:opacity-55" type="submit" data-payment-submit>
+            Kirim konfirmasi
+          </button>
+        </div>
+      </form>
+
+      <aside class="soft-card h-fit p-5 lg:sticky lg:top-28">
+        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Status</p>
+        <div class="mt-5 rounded-3xl bg-parchment/70 p-4">
+          <p class="text-sm text-[#70675e]">Setelah konfirmasi dikirim</p>
+          <p class="mt-2 font-serif text-2xl font-bold text-ink">Menunggu verifikasi</p>
+          <p class="mt-3 text-sm text-[#70675e]">
+            Status pembayaran akan menjadi <strong>waiting_verification</strong>. Admin tetap perlu memeriksa transfer sebelum pesanan diproses.
+          </p>
+        </div>
+
+        <div class="mt-5 hidden rounded-3xl border border-[#b9d8c2] bg-[#edf7ef] p-4 text-sm text-[#36543c]" data-payment-success>
+          <p class="font-bold">Konfirmasi tersimpan.</p>
+          <p class="mt-2" data-payment-success-detail>Admin akan memverifikasi pembayaran secara manual.</p>
+        </div>
+
+        <a class="mt-5 inline-flex w-full items-center justify-center rounded-full border border-date/25 bg-white/72 px-5 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href="https://wa.me/620000000000" data-payment-help-link>
+          Hubungi admin WhatsApp
+        </a>
+      </aside>
+    </div>
+  </section>
 </BaseLayout>
+
+<script>
+  import { formatRupiah } from '@/lib/cart';
+  import { confirmManualPayment, type PaymentConfirmationValues } from '@/lib/payment-confirmation';
+  import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+
+  const proofBucket = import.meta.env.PUBLIC_SUPABASE_PAYMENT_PROOF_BUCKET?.trim();
+  const form = document.querySelector<HTMLFormElement>('[data-payment-form]');
+  const submitButton = document.querySelector<HTMLButtonElement>('[data-payment-submit]');
+  const alertBox = document.querySelector<HTMLElement>('[data-payment-alert]');
+  const successBox = document.querySelector<HTMLElement>('[data-payment-success]');
+  const successDetail = document.querySelector<HTMLElement>('[data-payment-success-detail]');
+  const proofInput = document.querySelector<HTMLInputElement>('[data-proof-input]');
+  const proofHelp = document.querySelector<HTMLElement>('[data-proof-help]');
+  const proofStatus = document.querySelector<HTMLElement>('[data-proof-status]');
+  const helpLink = document.querySelector<HTMLAnchorElement>('[data-payment-help-link]');
+
+  const params = new URLSearchParams(window.location.search);
+  const invoiceFromUrl = params.get('invoice');
+
+  const setAlert = (message: string, tone: 'error' | 'success' = 'error') => {
+    if (!alertBox) {
+      return;
+    }
+
+    alertBox.textContent = message;
+    alertBox.classList.remove('hidden', 'border-date/25', 'bg-parchment/80', 'text-date', 'border-[#b9d8c2]', 'bg-[#edf7ef]', 'text-[#36543c]');
+
+    if (tone === 'success') {
+      alertBox.classList.add('border-[#b9d8c2]', 'bg-[#edf7ef]', 'text-[#36543c]');
+    } else {
+      alertBox.classList.add('border-date/25', 'bg-parchment/80', 'text-date');
+    }
+  };
+
+  const clearAlert = () => {
+    alertBox?.classList.add('hidden');
+  };
+
+  const setLoading = (isLoading: boolean) => {
+    if (!submitButton) {
+      return;
+    }
+
+    submitButton.disabled = isLoading;
+    submitButton.setAttribute('aria-busy', String(isLoading));
+    submitButton.textContent = isLoading ? 'Mengirim konfirmasi...' : 'Kirim konfirmasi';
+  };
+
+  const getFormValues = (): PaymentConfirmationValues => {
+    const data = new FormData(form ?? undefined);
+
+    return {
+      invoiceNumber: String(data.get('invoiceNumber') ?? ''),
+      whatsappNumber: String(data.get('whatsappNumber') ?? ''),
+      senderAccountName: String(data.get('senderAccountName') ?? ''),
+      bankName: String(data.get('bankName') ?? ''),
+      transferAmount: Number(data.get('transferAmount') ?? 0),
+      transferDate: String(data.get('transferDate') ?? ''),
+      note: String(data.get('note') ?? '')
+    };
+  };
+
+  const validateConfirmation = (values: PaymentConfirmationValues) => {
+    const missingFields = [
+      [values.invoiceNumber, 'nomor invoice'],
+      [values.whatsappNumber, 'nomor WhatsApp'],
+      [values.senderAccountName, 'nama rekening pengirim'],
+      [values.bankName, 'nama bank'],
+      [values.transferDate, 'tanggal transfer']
+    ]
+      .filter(([value]) => !String(value).trim())
+      .map(([, label]) => label);
+
+    if (missingFields.length > 0) {
+      return `Mohon lengkapi ${missingFields.join(', ')}.`;
+    }
+
+    if (values.whatsappNumber.replace(/\D/g, '').length < 8) {
+      return 'Nomor WhatsApp tampaknya belum lengkap.';
+    }
+
+    if (!Number.isFinite(values.transferAmount) || values.transferAmount <= 0) {
+      return 'Nominal transfer harus lebih dari 0.';
+    }
+
+    return null;
+  };
+
+  const getProofFile = () => {
+    const file = proofInput?.files?.[0];
+
+    if (!file) {
+      return null;
+    }
+
+    if (!proofBucket) {
+      return null;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Bukti transfer harus berupa gambar.');
+    }
+
+    if (file.size > 4 * 1024 * 1024) {
+      throw new Error('Ukuran bukti transfer maksimal 4 MB.');
+    }
+
+    return file;
+  };
+
+  const uploadProofImage = async (invoiceNumber: string) => {
+    const file = getProofFile();
+
+    if (!file || !proofBucket) {
+      return undefined;
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const safeInvoice = invoiceNumber.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
+    const path = `${safeInvoice}/${crypto.randomUUID()}.${extension}`;
+    const { error } = await supabase.storage.from(proofBucket).upload(path, file, {
+      cacheControl: '3600',
+      contentType: file.type,
+      upsert: false
+    });
+
+    if (error) {
+      throw new Error(`Upload bukti transfer gagal: ${error.message}`);
+    }
+
+    const { data } = supabase.storage.from(proofBucket).getPublicUrl(path);
+
+    return data.publicUrl;
+  };
+
+  const translateRpcError = (message: string) => {
+    if (message.includes('INVOICE_NOT_FOUND')) {
+      return 'Invoice tidak ditemukan. Periksa kembali nomor invoice dari halaman instruksi pembayaran.';
+    }
+
+    if (message.includes('WHATSAPP_MISMATCH')) {
+      return 'Nomor WhatsApp tidak sesuai dengan invoice. Gunakan nomor yang dipakai saat checkout.';
+    }
+
+    return message;
+  };
+
+  const applyInitialState = () => {
+    if (invoiceFromUrl && form) {
+      const invoiceInput = form.elements.namedItem('invoiceNumber') as HTMLInputElement | null;
+      if (invoiceInput) {
+        invoiceInput.value = invoiceFromUrl;
+      }
+    }
+
+    if (proofBucket) {
+      if (proofStatus) {
+        proofStatus.textContent = 'opsional';
+      }
+      if (proofHelp) {
+        proofHelp.textContent = `Upload aktif ke bucket Storage "${proofBucket}".`;
+      }
+    } else {
+      if (proofStatus) {
+        proofStatus.textContent = 'TODO Storage';
+      }
+      if (proofInput) {
+        proofInput.disabled = true;
+      }
+    }
+  };
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    clearAlert();
+    successBox?.classList.add('hidden');
+
+    const values = getFormValues();
+    const validationError = validateConfirmation(values);
+
+    if (validationError) {
+      setAlert(validationError);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const proofUrl = await uploadProofImage(values.invoiceNumber.trim());
+      const result = await confirmManualPayment({
+        ...values,
+        invoiceNumber: values.invoiceNumber.toUpperCase(),
+        proofUrl
+      });
+      const successText = result.duplicate
+        ? `Konfirmasi untuk ${result.orderNumber} sudah pernah diterima. Status tetap menunggu verifikasi admin.`
+        : `Konfirmasi ${result.orderNumber} tersimpan dengan nominal ${formatRupiah(values.transferAmount)}.`;
+
+      setAlert(successText, 'success');
+      successBox?.classList.remove('hidden');
+
+      if (successDetail) {
+        successDetail.textContent = successText;
+      }
+
+      helpLink?.setAttribute(
+        'href',
+        `https://wa.me/620000000000?text=${encodeURIComponent(`Assalamu'alaikum, saya sudah konfirmasi pembayaran untuk invoice ${result.orderNumber}.`)}`
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Konfirmasi pembayaran belum berhasil.';
+      setAlert(translateRpcError(message));
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  applyInitialState();
+</script>
+
+<style>
+  .payment-field {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .payment-field span {
+    color: #5f564e;
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .payment-field small {
+    color: #8a5f3f;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .payment-field input,
+  .payment-field textarea {
+    width: 100%;
+    border: 1px solid rgba(234, 220, 199, 0.95);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #2f2a25;
+    font: inherit;
+    outline: none;
+    padding: 0.85rem 1rem;
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .payment-field input[type='file'] {
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  .payment-field input:disabled {
+    cursor: not-allowed;
+    opacity: 0.68;
+  }
+
+  .payment-field textarea {
+    resize: vertical;
+  }
+
+  .payment-field input:focus,
+  .payment-field textarea:focus {
+    border-color: rgba(138, 95, 63, 0.55);
+    background: rgba(255, 252, 246, 0.96);
+    box-shadow: 0 0 0 4px rgba(242, 202, 126, 0.24);
+  }
+
+  .confirmation-motif {
+    height: 170px;
+    position: relative;
+    width: min(260px, 100%);
+  }
+
+  .confirmation-motif-paper,
+  .confirmation-motif-flower,
+  .confirmation-motif-bookmark {
+    position: absolute;
+  }
+
+  .confirmation-motif-paper {
+    left: 18px;
+    top: 24px;
+    height: 112px;
+    width: 144px;
+    border: 2px solid rgba(138, 95, 63, 0.5);
+    border-radius: 24px;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 20px, rgba(138, 95, 63, 0.12) 20px 22px),
+      rgba(255, 250, 241, 0.9);
+    transform: rotate(-5deg);
+  }
+
+  .confirmation-motif-flower {
+    right: 28px;
+    bottom: 24px;
+    height: 72px;
+    width: 72px;
+    border: 16px solid #eeb7ad;
+    border-radius: 42% 58% 45% 55%;
+    background: #f2ca7e;
+    box-shadow:
+      24px 8px 0 -12px #b9d8c2,
+      -22px 18px 0 -12px #b8dce8;
+    transform: rotate(16deg);
+  }
+
+  .confirmation-motif-bookmark {
+    right: 72px;
+    top: 20px;
+    height: 96px;
+    width: 38px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
+    background: #f2ca7e;
+  }
+</style>

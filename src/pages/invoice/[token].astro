@@ -1,0 +1,170 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { formatDateTime, formatRupiah, statusLabel } from '@/lib/admin/orders';
+import { getInvoiceByToken } from '@/lib/invoice';
+
+export const prerender = false;
+
+const token = Astro.params.token ?? '';
+const invoice = await getInvoiceByToken(token);
+
+if (!invoice) {
+  return new Response(null, { status: 404 });
+}
+
+const { order, items, settings } = invoice;
+const confirmationUrl = `/konfirmasi-pembayaran?invoice=${encodeURIComponent(order.order_number)}`;
+
+const normalizeWhatsappNumber = (value: string) => {
+  const digits = value.replace(/\D/g, '');
+
+  if (digits.startsWith('62')) {
+    return digits;
+  }
+
+  if (digits.startsWith('0')) {
+    return `62${digits.slice(1)}`;
+  }
+
+  return digits;
+};
+
+const adminWhatsapp = settings.whatsapp_admin_phone ? normalizeWhatsappNumber(settings.whatsapp_admin_phone) : '';
+---
+
+<BaseLayout title={`Invoice ${order.order_number}`} description={`Invoice pembayaran ${order.order_number} Ibu Kakang BookStore`}>
+  <section class="page-shell py-10 sm:py-14">
+    <article class="watercolor-panel p-6 sm:p-8 lg:p-10">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Invoice pembayaran</p>
+          <h1 class="mt-3 font-serif text-4xl font-bold text-ink">{order.order_number}</h1>
+          <p class="mt-2 text-sm text-[#70675e]">Dibuat {formatDateTime(order.created_at)}</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="rounded-full bg-honey px-3 py-1 text-xs font-bold text-date">{statusLabel(order.payment_status)}</span>
+          <span class="rounded-full bg-white/70 px-3 py-1 text-xs font-bold text-ink">{statusLabel(order.status)}</span>
+        </div>
+      </div>
+    </article>
+
+    <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
+      <section class="grid gap-6">
+        <article class="soft-card p-5 sm:p-6">
+          <h2 class="font-serif text-2xl font-bold text-ink">Data pemesan</h2>
+          <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+            <div><dt class="font-bold text-date">Nama</dt><dd class="text-[#70675e]">{order.customer_name}</dd></div>
+            <div><dt class="font-bold text-date">WhatsApp</dt><dd class="text-[#70675e]">{order.customer_phone}</dd></div>
+            <div><dt class="font-bold text-date">Email</dt><dd class="text-[#70675e]">{order.customer_email ?? '-'}</dd></div>
+            <div><dt class="font-bold text-date">Alamat</dt><dd class="whitespace-pre-line text-[#70675e]">{order.customer_address ?? '-'}</dd></div>
+          </dl>
+        </article>
+
+        <article class="soft-card overflow-hidden">
+          <h2 class="p-5 font-serif text-2xl font-bold text-ink">Rincian buku</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+              <thead class="bg-parchment/70 text-xs uppercase tracking-[0.12em] text-date">
+                <tr><th class="px-5 py-3">Buku</th><th class="px-5 py-3">Qty</th><th class="px-5 py-3 text-right">Harga</th><th class="px-5 py-3 text-right">Subtotal</th></tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr class="border-t border-[#eadcc7]">
+                    <td class="px-5 py-4 font-bold text-ink">{item.title}<br /><span class="text-xs font-medium text-[#70675e]">{item.book_slug}</span></td>
+                    <td class="px-5 py-4 text-[#70675e]">{item.quantity}</td>
+                    <td class="px-5 py-4 text-right text-[#70675e]">{formatRupiah(item.price)}</td>
+                    <td class="px-5 py-4 text-right font-bold text-ink">{formatRupiah(item.subtotal)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="soft-card p-5 sm:p-6">
+          <h2 class="font-serif text-2xl font-bold text-ink">Konfirmasi pembayaran</h2>
+          <p class="mt-3 whitespace-pre-line text-sm text-[#70675e]">{settings.payment_confirmation_notes}</p>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <a class="button-primary" href={confirmationUrl}>Konfirmasi pembayaran</a>
+            {adminWhatsapp && (
+              <a class="button-secondary" href={`https://wa.me/${adminWhatsapp}`} target="_blank" rel="noreferrer">Hubungi admin</a>
+            )}
+          </div>
+        </article>
+      </section>
+
+      <aside class="grid h-fit gap-6 lg:sticky lg:top-28">
+        <article class="soft-card p-5 sm:p-6">
+          <h2 class="font-serif text-2xl font-bold text-ink">Total pembayaran</h2>
+          <dl class="mt-4 grid gap-3 text-sm">
+            <div class="flex justify-between gap-4"><dt class="text-[#70675e]">Subtotal</dt><dd class="font-bold text-ink">{formatRupiah(order.subtotal)}</dd></div>
+            <div class="flex justify-between gap-4"><dt class="text-[#70675e]">Ongkir</dt><dd class="font-bold text-ink">{formatRupiah(order.shipping_cost)}</dd></div>
+            <div class="flex justify-between gap-4 border-t border-[#eadcc7] pt-3"><dt class="font-bold text-date">Total</dt><dd class="font-serif text-2xl font-bold text-ink">{formatRupiah(order.total)}</dd></div>
+          </dl>
+        </article>
+
+        <article class="soft-card p-5 sm:p-6">
+          <h2 class="font-serif text-2xl font-bold text-ink">Metode pembayaran</h2>
+          {(settings.bank_name || settings.account_number || settings.account_holder) && (
+            <div class="mt-4 rounded-3xl bg-parchment/70 p-4 text-sm">
+              {settings.bank_name && <p><span class="font-bold text-date">Bank:</span> <span class="text-[#5f564e]">{settings.bank_name}</span></p>}
+              {settings.account_number && (
+                <div class="mt-3 rounded-2xl border border-date/15 bg-white/70 p-3">
+                  <p class="font-bold text-date">No. Rekening</p>
+                  <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
+                    <span class="font-mono text-base font-bold tracking-wide text-ink">{settings.account_number}</span>
+                    <button
+                      class="rounded-full bg-ink px-4 py-2 text-xs font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date"
+                      type="button"
+                      data-copy-text={settings.account_number}
+                    >
+                      Copy rekening
+                    </button>
+                  </div>
+                </div>
+              )}
+              {settings.account_holder && <p class="mt-2"><span class="font-bold text-date">Atas Nama:</span> <span class="text-[#5f564e]">{settings.account_holder}</span></p>}
+            </div>
+          )}
+
+          {settings.qris_image_url && (
+            <div class="mt-4">
+              <img class="aspect-square w-full rounded-3xl border border-[#eadcc7] bg-white object-contain p-3 shadow-soft" src={settings.qris_image_url} alt="QRIS pembayaran" loading="lazy" />
+              {settings.qris_note && <p class="mt-3 whitespace-pre-line text-sm text-[#70675e]">{settings.qris_note}</p>}
+            </div>
+          )}
+        </article>
+
+        {settings.invoice_footer && (
+          <article class="rounded-3xl border border-[#eadcc7] bg-white/72 p-5 text-sm text-[#70675e] shadow-soft">
+            <p class="whitespace-pre-line">{settings.invoice_footer}</p>
+          </article>
+        )}
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const copyButtons = document.querySelectorAll<HTMLButtonElement>('[data-copy-text]');
+
+  copyButtons.forEach((button) => {
+    const defaultText = button.textContent ?? 'Copy';
+
+    button.addEventListener('click', async () => {
+      const value = button.dataset.copyText;
+
+      if (!value) {
+        return;
+      }
+
+      await navigator.clipboard.writeText(value);
+      button.textContent = 'Tersalin';
+      button.setAttribute('aria-live', 'polite');
+
+      window.setTimeout(() => {
+        button.textContent = defaultText;
+      }, 1600);
+    });
+  });
+</script>

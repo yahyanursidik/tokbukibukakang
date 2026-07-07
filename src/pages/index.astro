@@ -1,22 +1,22 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { siteConfig } from '@/config/site';
-import { getCollection } from 'astro:content';
+import { listPublicBooks, listPublicPoPeriods, listPublicReviews } from '@/lib/content/public';
 
-const books = (await getCollection('books'))
-  .filter((book) => book.data.isActive)
-  .sort((a, b) => Number(b.data.featured) - Number(a.data.featured));
-const featuredBooks = books.filter((book) => book.data.featured).slice(0, 3);
-const reviews = (await getCollection('reviews')).slice(0, 3);
-const poPeriods = await getCollection('poPeriods');
+export const prerender = false;
+
+const books = await listPublicBooks();
+const featuredBooks = books.filter((book) => book.featured).slice(0, 3);
+const reviews = await listPublicReviews(3);
+const poPeriods = await listPublicPoPeriods();
 const activePo = poPeriods
-  .filter((period) => period.data.status === 'open')
-  .sort((a, b) => a.data.endDate.getTime() - b.data.endDate.getTime())[0];
+  .filter((period) => period.status === 'open')
+  .sort((a, b) => a.endDate.getTime() - b.endDate.getTime())[0];
 const activePoBooks = activePo
-  ? books.filter((book) => activePo.data.bookSlugs.includes(book.data.slug)).slice(0, 3)
+  ? books.filter((book) => activePo.bookSlugs.includes(book.slug)).slice(0, 3)
   : [];
 
-const poHref = activePo ? `/po/${activePo.data.slug}` : '/po';
+const poHref = activePo ? `/po/${activePo.slug}` : '/po';
 
 const formatDate = new Intl.DateTimeFormat('id-ID', {
   day: 'numeric',
@@ -79,10 +79,10 @@ const preorderSteps = [
         Teman orang tua Muslim dalam memilih buku anak Islami yang lembut, jelas panduan usianya, dan nyaman dibaca bersama di rumah.
       </p>
       <div class="mt-7 flex flex-col gap-3 sm:flex-row">
-        <a class="inline-flex items-center justify-center rounded-full bg-ink px-6 py-3 text-sm font-bold text-cream shadow-soft transition hover:-translate-y-0.5 hover:bg-date" href={poHref}>
+        <a class="button-primary" href={poHref}>
           Lihat Buku PO
         </a>
-        <a class="inline-flex items-center justify-center rounded-full border border-date/25 bg-white/70 px-6 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href="/resensi">
+        <a class="button-secondary" href="/resensi">
           Baca Resensi
         </a>
       </div>
@@ -112,31 +112,32 @@ const preorderSteps = [
           <div class="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">PO sedang dibuka</p>
-              <h2 class="mt-2 font-serif text-3xl font-bold text-ink">{activePo.data.title}</h2>
-              <p class="mt-3 max-w-3xl text-[#5f564e]">{activePo.data.description}</p>
+              <h2 class="mt-2 font-serif text-3xl font-bold text-ink">{activePo.title}</h2>
+              <p class="mt-3 max-w-3xl text-[#5f564e]">{activePo.description}</p>
               <dl class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
                 <div class="rounded-2xl bg-white/60 p-4">
                   <dt class="font-bold text-date">Tutup PO</dt>
-                  <dd class="mt-1 text-ink">{formatDate.format(activePo.data.endDate)}</dd>
+                  <dd class="mt-1 text-ink">{formatDate.format(activePo.endDate)}</dd>
                 </div>
                 <div class="rounded-2xl bg-white/60 p-4">
                   <dt class="font-bold text-date">Estimasi kirim</dt>
-                  <dd class="mt-1 text-ink">{formatDate.format(activePo.data.estimatedShippingDate)}</dd>
+                  <dd class="mt-1 text-ink">{formatDate.format(activePo.estimatedShippingDate)}</dd>
                 </div>
               </dl>
               {activePoBooks.length > 0 && (
                 <p class="mt-4 text-sm text-[#70675e]">
-                  Buku PO: {activePoBooks.map((book) => book.data.title).join(', ')}
+                  Buku PO: {activePoBooks.map((book) => book.title).join(', ')}
                 </p>
               )}
             </div>
-            <a class="inline-flex items-center justify-center rounded-full bg-date px-6 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-ink" href={poHref}>
+            <a class="button-primary bg-date hover:bg-ink" href={poHref}>
               Lihat Detail PO
             </a>
           </div>
         </article>
       ) : (
-        <article class="soft-card p-6 sm:p-8">
+        <article class="empty-state">
+          <div class="motif motif-bookmark mx-auto mb-5 scale-75" aria-hidden="true"></div>
           <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">PO</p>
           <h2 class="mt-2 font-serif text-3xl font-bold text-ink">Belum ada PO aktif saat ini.</h2>
           <p class="mt-3 text-[#5f564e]">Silakan cek katalog buku ready stock atau pantau halaman PO untuk periode berikutnya.</p>
@@ -155,21 +156,19 @@ const preorderSteps = [
     </div>
     <div class="grid gap-4 md:grid-cols-3">
       {
-        featuredBooks.map(({ data }) => (
-          <article class="soft-card flex flex-col gap-4 p-5">
-            <div class="cover-object" aria-hidden="true">
-              <span></span>
-            </div>
+        featuredBooks.map((book) => (
+          <article class="soft-card flex flex-col gap-4 overflow-hidden p-5">
+            <img class="aspect-[4/3] w-full rounded-[24px] bg-parchment object-cover" src={book.coverImage} alt={`Sampul ${book.title}`} loading="lazy" />
             <div>
               <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">
-                {data.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}
+                {book.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}
               </p>
-              <h3 class="mt-2 font-serif text-xl font-bold leading-tight text-ink">{data.title}</h3>
-              <p class="mt-3 text-sm text-[#70675e]">{data.shortDescription}</p>
+              <h3 class="mt-2 font-serif text-xl font-bold leading-tight text-ink">{book.title}</h3>
+              <p class="mt-3 text-sm text-[#70675e]">{book.shortDescription}</p>
             </div>
             <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#eadcc7] pt-4 text-sm">
-              <span class="font-semibold text-[#5f564e]">Usia {data.ageMin}-{data.ageMax}</span>
-              <span class="font-bold text-ink">{formatPrice.format(data.price)}</span>
+              <span class="font-semibold text-[#5f564e]">Usia {book.ageMin}-{book.ageMax}</span>
+              <span class="font-bold text-ink">{formatPrice.format(book.price)}</span>
             </div>
           </article>
         ))
@@ -209,13 +208,13 @@ const preorderSteps = [
     </div>
     <div class="grid gap-4 lg:grid-cols-3">
       {
-        reviews.map(({ data }) => (
+        reviews.map((review) => (
           <article class="soft-card p-5">
             <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">
-              {data.sourceType === 'original' ? 'Original' : 'Ringkasan'}
+              {review.sourceType === 'original' ? 'Original' : 'Ringkasan'}
             </p>
-            <h3 class="mt-3 font-serif text-xl font-bold leading-tight text-ink">{data.title}</h3>
-            <p class="mt-3 text-sm text-[#70675e]">{data.summary}</p>
+            <h3 class="mt-3 font-serif text-xl font-bold leading-tight text-ink">{review.title}</h3>
+            <p class="mt-3 text-sm text-[#70675e]">{review.summary}</p>
           </article>
         ))
       }
@@ -250,7 +249,7 @@ const preorderSteps = [
           Kirim pesan WhatsApp untuk bertanya stok, rentang usia, atau rekomendasi bacaan yang sesuai kebutuhan keluarga.
         </p>
       </div>
-      <a class="inline-flex items-center justify-center rounded-full bg-mint px-6 py-3 text-sm font-bold text-[#36543c] transition hover:-translate-y-0.5 hover:bg-honey" href="https://wa.me/6200000000000">
+      <a class="button-primary bg-[#36543c] hover:bg-date" href="https://wa.me/6200000000000">
         WhatsApp Admin
       </a>
     </div>

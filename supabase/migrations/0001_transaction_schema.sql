@@ -79,6 +79,7 @@ create table if not exists public.payment_confirmations (
   transfer_date date not null,
   proof_url text,
   status public.payment_status not null default 'waiting_verification',
+  customer_note text,
   admin_notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

@@ -1,39 +1,37 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
+import { getPublicBookBySlug, listPublicBooks, listPublicPoPeriods } from '@/lib/content/public';
 
-export async function getStaticPaths() {
-  const books = await getCollection('books');
+export const prerender = false;
 
-  return books
-    .filter((book) => book.data.isActive)
-    .map((book) => ({
-      params: { slug: book.data.slug },
-      props: { book }
-    }));
+const data = await getPublicBookBySlug(Astro.params.slug ?? '');
+
+if (!data) {
+  return new Response(null, { status: 404 });
 }
 
-const { book } = Astro.props;
-const { data } = book;
-const allBooks = (await getCollection('books')).filter((entry) => entry.data.isActive);
-const poPeriods = await getCollection('poPeriods');
+const productImages = [data.coverImage, ...(data.galleryImages ?? [])].filter(
+  (imageUrl, index, images) => imageUrl && images.indexOf(imageUrl) === index
+);
+const allBooks = await listPublicBooks();
+const poPeriods = await listPublicPoPeriods();
 
 const activePoPeriods = poPeriods
-  .filter((period) => period.data.status === 'open' && period.data.bookSlugs.includes(data.slug))
-  .sort((a, b) => a.data.endDate.getTime() - b.data.endDate.getTime());
+  .filter((period) => period.status === 'open' && period.bookSlugs.includes(data.slug))
+  .sort((a, b) => a.endDate.getTime() - b.endDate.getTime());
 
 const relatedBooks = allBooks
-  .filter((entry) => entry.data.slug !== data.slug)
+  .filter((entry) => entry.slug !== data.slug)
   .map((entry) => {
-    const categoryScore = entry.data.categories.filter((category) => data.categories.includes(category)).length;
-    const themeScore = entry.data.themes.filter((theme) => data.themes.includes(theme)).length;
+    const categoryScore = entry.categories.filter((category) => data.categories.includes(category)).length;
+    const themeScore = entry.themes.filter((theme) => data.themes.includes(theme)).length;
 
     return {
       entry,
       score: categoryScore * 2 + themeScore
     };
   })
-  .sort((a, b) => b.score - a.score || Number(b.entry.data.featured) - Number(a.entry.data.featured))
+  .sort((a, b) => b.score - a.score || Number(b.entry.featured) - Number(a.entry.featured))
   .slice(0, 3)
   .map((item) => item.entry);
 
@@ -60,10 +58,26 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
       <div class="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
         <div class="relative bg-parchment p-6 sm:p-8">
           <img
+            data-product-gallery-main
             class="mx-auto aspect-[4/3] w-full max-w-xl rounded-[28px] border border-date/20 object-cover shadow-soft"
             src={data.coverImage}
             alt={`Sampul ${data.title}`}
           />
+          {productImages.length > 1 && (
+            <div class="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-5" data-product-gallery>
+              {productImages.map((imageUrl, index) => (
+                <button
+                  class="aspect-[4/3] overflow-hidden rounded-2xl border border-date/20 bg-white/70 p-1 transition hover:border-date"
+                  type="button"
+                  data-gallery-image={imageUrl}
+                  data-gallery-alt={`${index === 0 ? 'Sampul' : 'Foto produk'} ${data.title}`}
+                  aria-label={`Lihat gambar ${index + 1} ${data.title}`}
+                >
+                  <img class="h-full w-full rounded-xl object-cover" src={imageUrl} alt="" loading={index === 0 ? 'eager' : 'lazy'} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div class="p-6 sm:p-8 lg:p-10">
@@ -116,7 +130,7 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
           </div>
 
           <button
-            class="mt-8 inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date sm:w-auto"
+            class="button-primary mt-8 w-full sm:w-auto"
             type="button"
             data-cart-button
             data-book-slug={data.slug}
@@ -138,19 +152,19 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
           <div class="mt-4 grid gap-4 md:grid-cols-2">
             {activePoPeriods.map((period) => (
               <article class="rounded-3xl border border-date/15 bg-white/62 p-5">
-                <h2 class="font-serif text-2xl font-bold text-ink">{period.data.title}</h2>
-                <p class="mt-2 text-sm text-[#70675e]">{period.data.description}</p>
+                <h2 class="font-serif text-2xl font-bold text-ink">{period.title}</h2>
+                <p class="mt-2 text-sm text-[#70675e]">{period.description}</p>
                 <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                   <div>
                     <dt class="font-bold text-date">Tutup PO</dt>
-                    <dd class="text-[#5f564e]">{formatDate.format(period.data.endDate)}</dd>
+                    <dd class="text-[#5f564e]">{formatDate.format(period.endDate)}</dd>
                   </div>
                   <div>
                     <dt class="font-bold text-date">Estimasi kirim</dt>
-                    <dd class="text-[#5f564e]">{formatDate.format(period.data.estimatedShippingDate)}</dd>
+                    <dd class="text-[#5f564e]">{formatDate.format(period.estimatedShippingDate)}</dd>
                   </div>
                 </dl>
-                <a class="mt-5 inline-flex rounded-full bg-date px-5 py-2 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-ink" href={`/po/${period.data.slug}`}>
+                <a class="button-primary mt-5 bg-date hover:bg-ink" href={`/po/${period.slug}`}>
                   Lihat detail PO
                 </a>
               </article>
@@ -230,19 +244,19 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
           relatedBooks.length > 0 ? (
             relatedBooks.map((related) => (
               <article class="soft-card overflow-hidden">
-                <img class="aspect-[4/3] w-full bg-parchment object-cover" src={related.data.coverImage} alt={`Sampul ${related.data.title}`} loading="lazy" />
+                <img class="aspect-[4/3] w-full bg-parchment object-cover" src={related.coverImage} alt={`Sampul ${related.title}`} loading="lazy" />
                 <div class="p-5">
-                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">Usia {related.data.ageMin}-{related.data.ageMax}</p>
-                  <h3 class="mt-2 font-serif text-xl font-bold leading-tight text-ink">{related.data.title}</h3>
-                  <p class="mt-3 text-sm text-[#70675e]">{related.data.shortDescription}</p>
-                  <a class="mt-5 inline-flex rounded-full border border-date/25 bg-white/72 px-4 py-2 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href={`/buku/${related.data.slug}`}>
+                  <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">Usia {related.ageMin}-{related.ageMax}</p>
+                  <h3 class="mt-2 font-serif text-xl font-bold leading-tight text-ink">{related.title}</h3>
+                  <p class="mt-3 text-sm text-[#70675e]">{related.shortDescription}</p>
+                  <a class="button-secondary mt-5" href={`/buku/${related.slug}`}>
                     Lihat detail
                   </a>
                 </div>
               </article>
             ))
           ) : (
-            <p class="soft-card p-6 text-sm text-[#70675e] md:col-span-3">
+            <p class="empty-state text-sm text-[#70675e] md:col-span-3">
               Belum ada buku terkait yang cocok dari kategori atau tema yang sama.
             </p>
           )
@@ -256,6 +270,18 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
   import { addToCart, type CartItemInput } from '@/lib/cart';
 
   const cartButton = document.querySelector<HTMLButtonElement>('[data-cart-button]');
+  const galleryMain = document.querySelector<HTMLImageElement>('[data-product-gallery-main]');
+
+  document.querySelectorAll<HTMLButtonElement>('[data-gallery-image]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!galleryMain || !button.dataset.galleryImage) {
+        return;
+      }
+
+      galleryMain.src = button.dataset.galleryImage;
+      galleryMain.alt = button.dataset.galleryAlt || galleryMain.alt;
+    });
+  });
 
   const getCartItemFromButton = (button: HTMLButtonElement): CartItemInput | null => {
     const { bookSlug, bookTitle, bookPrice, bookCoverImage, bookStockType } = button.dataset;
@@ -288,7 +314,8 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
     }
 
     addToCart(cartItem);
-    cartButton.textContent = 'Masuk Keranjang';
+    cartButton.textContent = 'Sudah masuk';
+    cartButton.setAttribute('aria-live', 'polite');
     window.setTimeout(() => {
       cartButton.textContent = 'Masukkan Keranjang';
     }, 1400);

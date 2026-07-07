@@ -1,0 +1,543 @@
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import type { Json } from '@/lib/supabase/client';
+
+type TableName = 'books' | 'reviews' | 'po_periods' | 'pages';
+type FieldType =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'boolean'
+  | 'select'
+  | 'date'
+  | 'list'
+  | 'json'
+  | 'book-multiselect'
+  | 'storage-image'
+  | 'storage-gallery';
+
+const BOOK_MEDIA_BUCKET = 'book-media';
+const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
+export type ContentCollectionKey = 'books' | 'reviews' | 'po-periods' | 'pages';
+export type ContentRow = Record<string, unknown> & {
+  id: string;
+  title: string;
+  slug: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type FieldConfig = {
+  name: string;
+  label: string;
+  type: FieldType;
+  required?: boolean;
+  options?: { label: string; value: string }[];
+  hint?: string;
+};
+
+type CollectionConfig = {
+  key: ContentCollectionKey;
+  table: TableName;
+  label: string;
+  singularLabel: string;
+  description: string;
+  listColumns: { label: string; field: string; type?: 'boolean' | 'array' | 'status' | 'currency' }[];
+  fields: FieldConfig[];
+};
+
+export const contentCollections: Record<ContentCollectionKey, CollectionConfig> = {
+  books: {
+    key: 'books',
+    table: 'books',
+    label: 'Buku',
+    singularLabel: 'Buku',
+    description: 'Kelola katalog buku yang nantinya menjadi sumber data storefront.',
+    listColumns: [
+      { label: 'Judul', field: 'title' },
+      { label: 'Stok', field: 'stock_type', type: 'status' },
+      { label: 'Harga', field: 'price', type: 'currency' },
+      { label: 'Aktif', field: 'is_active', type: 'boolean' }
+    ],
+    fields: [
+      { name: 'title', label: 'Judul', type: 'text', required: true },
+      { name: 'slug', label: 'Slug', type: 'text', required: true, hint: 'Gunakan huruf kecil dan tanda hubung.' },
+      { name: 'subtitle', label: 'Subjudul', type: 'text' },
+      { name: 'author', label: 'Penulis', type: 'text' },
+      { name: 'publisher', label: 'Penerbit', type: 'text' },
+      { name: 'age_min', label: 'Usia minimum', type: 'number', required: true },
+      { name: 'age_max', label: 'Usia maksimum', type: 'number', required: true },
+      { name: 'categories', label: 'Kategori', type: 'list', required: true, hint: 'Pisahkan dengan koma atau baris baru.' },
+      { name: 'themes', label: 'Tema', type: 'list', required: true, hint: 'Pisahkan dengan koma atau baris baru.' },
+      { name: 'price', label: 'Harga', type: 'number', required: true },
+      {
+        name: 'cover_image',
+        label: 'Cover buku',
+        type: 'storage-image',
+        required: true,
+        hint: 'Upload JPG/PNG/WebP/GIF ke Supabase Storage, atau isi URL gambar yang sudah ada. Cover ini dipakai sebagai thumbnail katalog dan buku PO.'
+      },
+      {
+        name: 'gallery_images',
+        label: 'Galeri produk buku',
+        type: 'storage-gallery',
+        hint: 'Upload foto tambahan seperti cover belakang, isi buku, atau detail paket. Satu URL per baris bila ingin memakai gambar yang sudah ada.'
+      },
+      { name: 'short_description', label: 'Deskripsi singkat', type: 'textarea', required: true },
+      { name: 'review_summary', label: 'Ringkasan resensi', type: 'textarea', required: true },
+      { name: 'parent_notes', label: 'Catatan orang tua', type: 'textarea', required: true },
+      { name: 'manhaj_notes', label: 'Catatan kurasi Ibu Kakang', type: 'textarea', required: true },
+      {
+        name: 'stock_type',
+        label: 'Tipe stok',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Preorder', value: 'preorder' },
+          { label: 'Ready stock', value: 'ready_stock' }
+        ]
+      },
+      { name: 'is_active', label: 'Aktif ditampilkan', type: 'boolean' },
+      { name: 'featured', label: 'Buku pilihan', type: 'boolean' },
+      {
+        name: 'external_review_sources',
+        label: 'Sumber resensi eksternal',
+        type: 'json',
+        hint: 'Isi JSON array, contoh: [{"sourceName":"Nama","sourceUrl":"https://..."}].'
+      }
+    ]
+  },
+  reviews: {
+    key: 'reviews',
+    table: 'reviews',
+    label: 'Resensi',
+    singularLabel: 'Resensi',
+    description: 'Kelola resensi original atau ringkasan eksternal yang ditulis ulang.',
+    listColumns: [
+      { label: 'Judul', field: 'title' },
+      { label: 'Buku', field: 'book_slug' },
+      { label: 'Sumber', field: 'source_type', type: 'status' }
+    ],
+    fields: [
+      { name: 'title', label: 'Judul', type: 'text', required: true },
+      { name: 'slug', label: 'Slug', type: 'text', required: true },
+      { name: 'book_slug', label: 'Slug buku', type: 'text', required: true },
+      { name: 'summary', label: 'Ringkasan', type: 'textarea', required: true },
+      { name: 'content', label: 'Isi resensi', type: 'textarea', required: true },
+      {
+        name: 'source_type',
+        label: 'Tipe sumber',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Original', value: 'original' },
+          { label: 'Ringkasan eksternal', value: 'external_summary' }
+        ]
+      },
+      { name: 'source_name', label: 'Nama sumber', type: 'text' },
+      { name: 'source_url', label: 'URL sumber', type: 'text' },
+      { name: 'reviewer_note', label: 'Catatan reviewer', type: 'textarea' }
+    ]
+  },
+  'po-periods': {
+    key: 'po-periods',
+    table: 'po_periods',
+    label: 'Periode PO',
+    singularLabel: 'Periode PO',
+    description: 'Kelola jadwal preorder, buku yang ikut PO, dan status historinya.',
+    listColumns: [
+      { label: 'Judul', field: 'title' },
+      { label: 'Status', field: 'status', type: 'status' },
+      { label: 'Buku PO', field: 'book_slugs', type: 'array' },
+      { label: 'Mulai', field: 'start_date' },
+      { label: 'Tutup', field: 'end_date' }
+    ],
+    fields: [
+      { name: 'title', label: 'Judul', type: 'text', required: true },
+      { name: 'slug', label: 'Slug', type: 'text', required: true },
+      { name: 'start_date', label: 'Tanggal mulai', type: 'date', required: true },
+      { name: 'end_date', label: 'Tanggal ditutup', type: 'date', required: true },
+      { name: 'estimated_shipping_date', label: 'Estimasi pengiriman', type: 'date', required: true },
+      {
+        name: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { label: 'Draft', value: 'draft' },
+          { label: 'Open', value: 'open' },
+          { label: 'Closed', value: 'closed' },
+          { label: 'Archived', value: 'archived' }
+        ]
+      },
+      { name: 'description', label: 'Deskripsi', type: 'textarea', required: true },
+      {
+        name: 'book_slugs',
+        label: 'Buku PO dari katalog',
+        type: 'book-multiselect',
+        required: true,
+        hint: 'Pilih satu atau beberapa buku dari Content CMS - Buku. Buku preorder aktif ditampilkan lebih dahulu.'
+      },
+      { name: 'notes', label: 'Catatan', type: 'textarea' }
+    ]
+  },
+  pages: {
+    key: 'pages',
+    table: 'pages',
+    label: 'Halaman',
+    singularLabel: 'Halaman',
+    description: 'Kelola copy halaman statis seperti panduan belanja, tentang, dan kontak.',
+    listColumns: [
+      { label: 'Judul', field: 'title' },
+      { label: 'Slug', field: 'slug' },
+      { label: 'SEO title', field: 'seo_title' }
+    ],
+    fields: [
+      { name: 'title', label: 'Judul', type: 'text', required: true },
+      { name: 'slug', label: 'Slug', type: 'text', required: true },
+      { name: 'description', label: 'Deskripsi', type: 'textarea', required: true },
+      { name: 'seo_title', label: 'SEO title', type: 'text' },
+      { name: 'seo_description', label: 'SEO description', type: 'textarea' }
+    ]
+  }
+};
+
+export const contentCollectionKeys = Object.keys(contentCollections) as ContentCollectionKey[];
+
+export const getContentCollection = (key: string) => contentCollections[key as ContentCollectionKey] ?? null;
+
+export const formatContentValue = (value: unknown, type?: string) => {
+  if (value === null || value === undefined || value === '') {
+    return '-';
+  }
+
+  if (type === 'boolean') {
+    return value ? 'Ya' : 'Tidak';
+  }
+
+  if (type === 'array' || Array.isArray(value)) {
+    return Array.isArray(value) ? value.join(', ') : String(value);
+  }
+
+  if (type === 'currency') {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0
+    }).format(Number(value));
+  }
+
+  return String(value);
+};
+
+export const getFormValue = (row: ContentRow | null, field: FieldConfig) => {
+  const value = row?.[field.name];
+
+  if (field.type === 'book-multiselect') {
+    return Array.isArray(value) ? value.map(String) : [];
+  }
+
+  if (field.type === 'list') {
+    return Array.isArray(value) ? value.join('\n') : '';
+  }
+
+  if (field.type === 'storage-gallery') {
+    return Array.isArray(value) ? value.join('\n') : '';
+  }
+
+  if (field.type === 'json') {
+    return value ? JSON.stringify(value, null, 2) : '[]';
+  }
+
+  if (field.type === 'boolean') {
+    return Boolean(value);
+  }
+
+  return value === null || value === undefined ? '' : String(value);
+};
+
+export const getSelectedContentValues = (row: ContentRow | null, field: FieldConfig) => {
+  if (field.type === 'storage-gallery') {
+    const value = row?.[field.name];
+    return Array.isArray(value) ? value.map(String) : [];
+  }
+
+  const value = getFormValue(row, field);
+  return Array.isArray(value) ? value : [];
+};
+
+const parseList = (value: string) =>
+  value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const normalizeSlug = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const parseJson = (value: string): Json => {
+  if (!value.trim()) {
+    return [];
+  }
+
+  return JSON.parse(value) as Json;
+};
+
+const parseUrlList = (value: string) =>
+  value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const getImageExtension = (file: File) => {
+  const extensionFromName = file.name.split('.').pop()?.toLowerCase();
+
+  if (extensionFromName && /^[a-z0-9]+$/.test(extensionFromName)) {
+    return extensionFromName === 'jpeg' ? 'jpg' : extensionFromName;
+  }
+
+  if (file.type === 'image/png') {
+    return 'png';
+  }
+
+  if (file.type === 'image/webp') {
+    return 'webp';
+  }
+
+  if (file.type === 'image/gif') {
+    return 'gif';
+  }
+
+  return 'jpg';
+};
+
+const getUploadedFiles = (formData: FormData, name: string) =>
+  formData.getAll(name).filter((value): value is File => value instanceof File && value.size > 0);
+
+const assertUploadableImage = (file: File, label: string) => {
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    throw new Error(`${label} harus berupa gambar JPG, PNG, WebP, atau GIF.`);
+  }
+
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error(`${label} maksimal 8 MB per file.`);
+  }
+};
+
+const uploadBookImage = async (file: File, fieldName: string, slug: string) => {
+  assertUploadableImage(file, fieldName === 'cover_image' ? 'Cover buku' : 'Galeri produk buku');
+
+  const supabase = createSupabaseServerClient();
+  const extension = getImageExtension(file);
+  const filePath = `books/${slug}/${fieldName}/${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage.from(BOOK_MEDIA_BUCKET).upload(filePath, file, {
+    cacheControl: '31536000',
+    contentType: file.type,
+    upsert: false
+  });
+
+  if (error) {
+    throw new Error(`Upload gambar gagal: ${error.message}`);
+  }
+
+  return supabase.storage.from(BOOK_MEDIA_BUCKET).getPublicUrl(filePath).data.publicUrl;
+};
+
+export const parseContentForm = async (collection: CollectionConfig, formData: FormData) => {
+  const values: Record<string, unknown> = {};
+  const errors: string[] = [];
+
+  for (const field of collection.fields) {
+    const rawValue = String(formData.get(field.name) ?? '').trim();
+
+    if (field.type === 'book-multiselect') {
+      const selectedValues = formData
+        .getAll(field.name)
+        .map((value) => String(value).trim())
+        .filter(Boolean);
+
+      if (field.required && selectedValues.length === 0) {
+        errors.push(`${field.label} minimal berisi satu buku.`);
+      }
+
+      values[field.name] = selectedValues;
+      continue;
+    }
+
+    if (field.type === 'storage-image') {
+      const uploadedFile = getUploadedFiles(formData, `${field.name}_file`)[0];
+      const slug = String((values.slug ?? normalizeSlug(String(formData.get('slug') ?? ''))) || crypto.randomUUID());
+
+      if (uploadedFile) {
+        try {
+          values[field.name] = await uploadBookImage(uploadedFile, field.name, slug);
+        } catch (error) {
+          errors.push(error instanceof Error ? error.message : `${field.label} gagal di-upload.`);
+        }
+      } else if (rawValue) {
+        values[field.name] = rawValue;
+      } else if (field.required) {
+        errors.push(`${field.label} wajib diisi atau di-upload.`);
+      } else {
+        values[field.name] = null;
+      }
+
+      continue;
+    }
+
+    if (field.type === 'storage-gallery') {
+      const slug = String((values.slug ?? normalizeSlug(String(formData.get('slug') ?? ''))) || crypto.randomUUID());
+      const existingUrls = parseUrlList(rawValue);
+      const uploadedFiles = getUploadedFiles(formData, `${field.name}_files`);
+      const uploadedUrls: string[] = [];
+
+      for (const file of uploadedFiles) {
+        try {
+          uploadedUrls.push(await uploadBookImage(file, field.name, slug));
+        } catch (error) {
+          errors.push(error instanceof Error ? error.message : `${field.label} gagal di-upload.`);
+        }
+      }
+
+      values[field.name] = [...existingUrls, ...uploadedUrls];
+      continue;
+    }
+
+    if (field.required && !rawValue && field.type !== 'boolean') {
+      errors.push(`${field.label} wajib diisi.`);
+      continue;
+    }
+
+    if (field.name === 'slug') {
+      values[field.name] = normalizeSlug(rawValue);
+      if (field.required && !values[field.name]) {
+        errors.push('Slug wajib berisi huruf atau angka.');
+      }
+      continue;
+    }
+
+    if (field.type === 'boolean') {
+      values[field.name] = formData.get(field.name) === 'on';
+      continue;
+    }
+
+    if (!rawValue && !field.required) {
+      values[field.name] = null;
+      continue;
+    }
+
+    if (field.type === 'number') {
+      const numberValue = Number(rawValue);
+      if (!Number.isFinite(numberValue)) {
+        errors.push(`${field.label} harus berupa angka.`);
+      } else {
+        values[field.name] = numberValue;
+      }
+      continue;
+    }
+
+    if (field.type === 'list') {
+      const listValue = parseList(rawValue);
+      if (field.required && listValue.length === 0) {
+        errors.push(`${field.label} minimal berisi satu item.`);
+      }
+      values[field.name] = listValue;
+      continue;
+    }
+
+    if (field.type === 'json') {
+      try {
+        values[field.name] = parseJson(rawValue);
+      } catch {
+        errors.push(`${field.label} harus berupa JSON valid.`);
+      }
+      continue;
+    }
+
+    values[field.name] = rawValue;
+  }
+
+  if (errors.length > 0) {
+    throw new Error(errors.join(' '));
+  }
+
+  return values;
+};
+
+export const listContentRows = async (collection: CollectionConfig) => {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from(collection.table)
+    .select('*')
+    .order('updated_at', { ascending: false })
+    .limit(200);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as ContentRow[];
+};
+
+export const listBookOptions = async () => {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('books')
+    .select('title, slug, stock_type, is_active')
+    .order('stock_type', { ascending: true })
+    .order('is_active', { ascending: false })
+    .order('title', { ascending: true })
+    .limit(500);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data ?? [];
+};
+
+export const getContentRow = async (collection: CollectionConfig, id: string) => {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase.from(collection.table).select('*').eq('id', id).single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as ContentRow;
+};
+
+export const createContentRow = async (collection: CollectionConfig, values: Record<string, unknown>) => {
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.from(collection.table).insert(values as never);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const updateContentRow = async (collection: CollectionConfig, id: string, values: Record<string, unknown>) => {
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.from(collection.table).update(values as never).eq('id', id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const deleteContentRow = async (collection: CollectionConfig, id: string) => {
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.from(collection.table).delete().eq('id', id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+};
+
+export type ContentFieldConfig = FieldConfig;
+export type ContentCollectionConfig = CollectionConfig;
