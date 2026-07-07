@@ -64,7 +64,7 @@ if (isAuthenticated) {
   !isAuthenticated ? (
     <BaseLayout title="Login Ibu Kakang" description="Login Ibu Kakang untuk Books by Ibunya Kakang">
       <section class="page-shell grid min-h-[68vh] place-items-center py-10">
-        <form class="soft-card w-full max-w-md p-6 sm:p-8" method="post">
+        <form class="soft-card w-full max-w-md p-6 sm:p-8" method="post" data-login-form>
           <img class="mx-auto h-20 w-20 rounded-3xl bg-[#fffaf1] object-contain p-2 shadow-soft" src="/brand/ibu-kakang-logo.png" alt="" />
           <h1 class="mt-5 text-center font-serif text-3xl font-bold text-ink">Ibu Kakang</h1>
           <p class="mt-2 text-center text-sm text-[#70675e]">Masuk dengan akun Supabase yang sudah terdaftar untuk mengelola toko.</p>
@@ -78,9 +78,26 @@ if (isAuthenticated) {
           </label>
           <label class="mt-4 grid gap-2 text-sm font-bold text-[#5f564e]">
             Password Supabase
-            <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name="password" type="password" autocomplete="current-password" required />
+            <span class="relative block">
+              <input
+                class="w-full rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 pr-24 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+                data-password-input
+              />
+              <button
+                class="absolute right-2 top-1/2 inline-flex min-h-9 -translate-y-1/2 items-center rounded-full border border-date/20 bg-white/86 px-3 text-xs font-bold text-date transition hover:bg-parchment"
+                type="button"
+                data-password-toggle
+                aria-pressed="false"
+              >
+                Lihat
+              </button>
+            </span>
           </label>
-          <button class="mt-5 w-full rounded-full bg-ink px-6 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date" type="submit">
+          <button class="mt-5 w-full rounded-full bg-ink px-6 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date disabled:cursor-wait disabled:opacity-75 disabled:hover:translate-y-0" type="submit" data-login-submit>
             Masuk dashboard
           </button>
         </form>
@@ -152,3 +169,31 @@ if (isAuthenticated) {
     </AdminShell>
   )
 }
+
+<script>
+  const loginForm = document.querySelector<HTMLFormElement>('[data-login-form]');
+  const passwordInput = document.querySelector<HTMLInputElement>('[data-password-input]');
+  const passwordToggle = document.querySelector<HTMLButtonElement>('[data-password-toggle]');
+  const loginSubmit = document.querySelector<HTMLButtonElement>('[data-login-submit]');
+
+  passwordToggle?.addEventListener('click', () => {
+    if (!passwordInput) {
+      return;
+    }
+
+    const shouldShow = passwordInput.type === 'password';
+    passwordInput.type = shouldShow ? 'text' : 'password';
+    passwordToggle.textContent = shouldShow ? 'Sembunyikan' : 'Lihat';
+    passwordToggle.setAttribute('aria-pressed', String(shouldShow));
+    passwordInput.focus();
+  });
+
+  loginForm?.addEventListener('submit', () => {
+    if (!loginSubmit) {
+      return;
+    }
+
+    loginSubmit.disabled = true;
+    loginSubmit.textContent = 'Memeriksa akun...';
+  });
+</script>

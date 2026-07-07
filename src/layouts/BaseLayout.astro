@@ -29,10 +29,87 @@ const pageTitle = title === siteConfig.name ? title : `${title} | ${siteConfig.n
     <title>{pageTitle}</title>
   </head>
   <body>
+    <div class="site-loading" data-site-loading aria-hidden="true">
+      <div class="site-loading__bar"></div>
+      <div class="site-loading__pill" role="status" aria-live="polite">
+        <span class="site-loading__spinner" aria-hidden="true"></span>
+        <span data-site-loading-text>Memuat halaman...</span>
+      </div>
+    </div>
     <Header currentPath={Astro.url.pathname} />
     <main>
       <slot />
     </main>
     <Footer />
+    <script>
+      const loading = document.querySelector<HTMLElement>('[data-site-loading]');
+      const loadingText = document.querySelector<HTMLElement>('[data-site-loading-text]');
+      let loadingTimer: number | undefined;
+
+      const showLoading = (message = 'Memuat halaman...') => {
+        if (!loading) {
+          return;
+        }
+
+        if (loadingText) {
+          loadingText.textContent = message;
+        }
+
+        window.clearTimeout(loadingTimer);
+        loadingTimer = window.setTimeout(() => {
+          loading.dataset.active = 'true';
+          loading.setAttribute('aria-hidden', 'false');
+        }, 160);
+      };
+
+      const shouldHandleLink = (link: HTMLAnchorElement, event: MouseEvent) => {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+          return false;
+        }
+
+        if (link.target && link.target !== '_self') {
+          return false;
+        }
+
+        if (link.hasAttribute('download')) {
+          return false;
+        }
+
+        const url = new URL(link.href, window.location.href);
+
+        if (url.origin !== window.location.origin) {
+          return false;
+        }
+
+        return url.pathname !== window.location.pathname || url.search !== window.location.search;
+      };
+
+      document.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target.closest('a[href]') : null;
+
+        if (target instanceof HTMLAnchorElement && shouldHandleLink(target, event)) {
+          showLoading('Membuka halaman...');
+        }
+      });
+
+      document.addEventListener('submit', (event) => {
+        const form = event.target;
+
+        if (!(form instanceof HTMLFormElement) || event.defaultPrevented) {
+          return;
+        }
+
+        const method = (form.method || 'get').toLowerCase();
+        showLoading(method === 'post' ? 'Menyimpan dan memproses...' : 'Memuat hasil...');
+      });
+
+      window.addEventListener('pageshow', () => {
+        window.clearTimeout(loadingTimer);
+        if (loading) {
+          delete loading.dataset.active;
+          loading.setAttribute('aria-hidden', 'true');
+        }
+      });
+    </script>
   </body>
 </html>
