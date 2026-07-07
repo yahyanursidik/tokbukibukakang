@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { siteConfig } from '@/config/site';
 ---
 
 <BaseLayout
@@ -109,7 +110,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
           <p class="mt-2" data-payment-success-detail>Ibu Kakang akan memverifikasi pembayaran secara manual.</p>
         </div>
 
-        <a class="mt-5 inline-flex w-full items-center justify-center rounded-full border border-date/25 bg-white/72 px-5 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href="https://wa.me/620000000000" data-payment-help-link>
+        <a class="mt-5 inline-flex w-full items-center justify-center rounded-full border border-date/25 bg-white/72 px-5 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href={siteConfig.whatsappUrl} data-payment-help-link>
           Hubungi Ibu Kakang via WhatsApp
         </a>
       </aside>
@@ -119,6 +120,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 
 <script>
   import { formatRupiah } from '@/lib/cart';
+  import { siteConfig } from '@/config/site';
   import { confirmManualPayment, type PaymentConfirmationValues } from '@/lib/payment-confirmation';
   import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
@@ -325,7 +327,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 
       helpLink?.setAttribute(
         'href',
-        `https://wa.me/620000000000?text=${encodeURIComponent(`Assalamu'alaikum, saya sudah konfirmasi pembayaran untuk invoice ${result.orderNumber}.`)}`
+        `${siteConfig.whatsappUrl}?text=${encodeURIComponent(`Assalamu'alaikum, saya sudah konfirmasi pembayaran untuk invoice ${result.orderNumber}.`)}`
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Konfirmasi pembayaran belum berhasil.';

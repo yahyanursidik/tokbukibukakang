@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { siteConfig } from '@/config/site';
 ---
 
 <BaseLayout
@@ -82,7 +83,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
           <a class="inline-flex items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-bold text-cream transition hover:-translate-y-0.5 hover:bg-date" href="/konfirmasi-pembayaran" data-payment-confirm-link>
             Konfirmasi pembayaran
           </a>
-          <a class="inline-flex items-center justify-center rounded-full border border-date/25 bg-white/72 px-5 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href="https://wa.me/620000000000" data-payment-help-link>
+          <a class="inline-flex items-center justify-center rounded-full border border-date/25 bg-white/72 px-5 py-3 text-sm font-bold text-ink transition hover:-translate-y-0.5 hover:bg-parchment" href={siteConfig.whatsappUrl} data-payment-help-link>
             Hubungi Ibu Kakang via WhatsApp
           </a>
         </div>
@@ -94,6 +95,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 <script>
   import { CHECKOUT_ORDER_STORAGE_KEY, type StoredCheckoutOrder } from '@/lib/checkout';
   import { formatRupiah, type CartItem } from '@/lib/cart';
+  import { siteConfig } from '@/config/site';
 
   const params = new URLSearchParams(window.location.search);
   const invoiceFromUrl = params.get('invoice');
@@ -163,7 +165,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
     confirmLink?.setAttribute('href', `/konfirmasi-pembayaran?invoice=${encodeURIComponent(invoiceNumber)}`);
     helpLink?.setAttribute(
       'href',
-      `https://wa.me/620000000000?text=${encodeURIComponent(`Assalamu'alaikum, saya ingin bertanya tentang invoice ${invoiceNumber}.`)}`
+      `${siteConfig.whatsappUrl}?text=${encodeURIComponent(`Assalamu'alaikum, saya ingin bertanya tentang invoice ${invoiceNumber}.`)}`
     );
 
     if (!order) {

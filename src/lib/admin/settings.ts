@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { siteConfig } from '@/config/site';
 import type { Database } from '@/lib/supabase/client';
 
 const PAYMENT_MEDIA_BUCKET = 'payment-media';
@@ -13,7 +14,7 @@ export const defaultPaymentSettings = {
   account_holder: 'Books by Ibunya Kakang',
   qris_image_url: '',
   qris_note: '',
-  whatsapp_admin_phone: '',
+  whatsapp_admin_phone: siteConfig.whatsappNumber,
   payment_confirmation_notes:
     'Setelah transfer, mohon konfirmasi pembayaran melalui halaman konfirmasi agar Ibu Kakang dapat memverifikasi pesanan.',
   invoice_footer:

@@ -49,13 +49,46 @@ const reasons = [
 ];
 
 const preorderSteps = [
-  'Pilih buku',
-  'Masukkan keranjang',
-  'Checkout manual',
-  'Transfer',
-  'Konfirmasi pembayaran',
-  'Ibu Kakang kirim invoice/update via WhatsApp'
-];
+  {
+    title: 'Pilih buku',
+    description: 'Buka katalog atau periode PO, lalu pilih buku yang cocok untuk keluarga.',
+    icon: 'book'
+  },
+  {
+    title: 'Masukkan keranjang',
+    description: 'Simpan pilihan buku agar jumlah dan total sementara mudah dicek.',
+    icon: 'basket'
+  },
+  {
+    title: 'Checkout manual',
+    description: 'Isi nama, nomor WhatsApp, alamat, dan catatan pesanan.',
+    icon: 'form'
+  },
+  {
+    title: 'Transfer',
+    description: 'Lakukan pembayaran sesuai invoice dan instruksi transfer yang tersedia.',
+    icon: 'bank'
+  },
+  {
+    title: 'Konfirmasi',
+    description: 'Kirim konfirmasi pembayaran agar pesanan bisa diverifikasi.',
+    icon: 'check'
+  },
+  {
+    title: 'Update WhatsApp',
+    description: 'Ibu Kakang mengirim invoice, verifikasi, dan kabar pesanan via WhatsApp.',
+    icon: 'chat'
+  }
+] as const;
+
+const preorderIconPaths = {
+  book: ['M5 5h8a3 3 0 0 1 3 3v12H8a3 3 0 0 0-3 3V5Z', 'M16 8h2a2 2 0 0 1 2 2v10h-4', 'M8 9h5', 'M8 13h5'],
+  basket: ['M6 9h12l-1.2 10H7.2L6 9Z', 'M9 9a3 3 0 0 1 6 0', 'M9 13v3', 'M15 13v3'],
+  form: ['M6 4h9l3 3v13H6V4Z', 'M14 4v4h4', 'M9 11h6', 'M9 15h6', 'M9 18h4'],
+  bank: ['M4 10h16', 'M6 10v9', 'M10 10v9', 'M14 10v9', 'M18 10v9', 'M4 19h16', 'M12 4l8 6H4l8-6Z'],
+  check: ['M20 7 10 17l-5-5', 'M5 20h14'],
+  chat: ['M5 6h14v10H8l-3 3V6Z', 'M8 10h8', 'M8 13h5']
+} as const;
 ---
 
 <BaseLayout
@@ -240,17 +273,32 @@ const preorderSteps = [
   </section>
 
   <section class="page-shell pb-14">
-    <div class="watercolor-panel p-6 sm:p-8">
-      <div class="mb-7 max-w-2xl">
-        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Cara pre-order</p>
-        <h2 class="font-serif text-3xl font-bold text-ink">Alur manual yang mudah diikuti</h2>
+    <div class="watercolor-panel preorder-panel p-6 sm:p-8">
+      <div class="mb-8 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div class="max-w-2xl">
+          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Cara pre-order</p>
+          <h2 class="font-serif text-3xl font-bold text-ink">Alur manual yang mudah diikuti</h2>
+          <p class="mt-3 text-[#70675e]">
+            Dari pilih buku sampai update via WhatsApp, setiap tahap dibuat jelas agar orang tua tahu posisi pesanannya.
+          </p>
+        </div>
+        <a class="button-secondary bg-white/78" href={poHref}>Mulai dari buku PO</a>
       </div>
-      <ol class="grid gap-3 md:grid-cols-3">
+      <ol class="preorder-flow">
         {
           preorderSteps.map((step, index) => (
-            <li class="rounded-3xl border border-date/15 bg-white/62 p-4">
-              <span class="text-xs font-bold uppercase tracking-[0.14em] text-date">Langkah {index + 1}</span>
-              <p class="mt-2 font-serif text-lg font-bold text-ink">{step}</p>
+            <li class="preorder-step">
+              <span class="preorder-step__number">{index + 1}</span>
+              <span class="preorder-step__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  {preorderIconPaths[step.icon].map((path) => <path d={path} />)}
+                </svg>
+              </span>
+              <span class="block">
+                <span class="block text-xs font-bold uppercase tracking-[0.14em] text-date">Langkah {index + 1}</span>
+                <span class="mt-1 block font-serif text-xl font-bold leading-tight text-ink">{step.title}</span>
+                <span class="mt-2 block text-sm leading-6 text-[#70675e]">{step.description}</span>
+              </span>
             </li>
           ))
         }
@@ -267,7 +315,7 @@ const preorderSteps = [
           Kirim pesan WhatsApp untuk bertanya stok, rentang usia, atau rekomendasi bacaan yang sesuai kebutuhan keluarga.
         </p>
       </div>
-      <a class="button-primary bg-[#36543c] hover:bg-date" href="https://wa.me/6200000000000">
+      <a class="button-primary bg-[#36543c] hover:bg-date" href={`${siteConfig.whatsappUrl}?text=${encodeURIComponent("Assalamu'alaikum, saya ingin bertanya tentang rekomendasi buku di Books by Ibunya Kakang.")}`}>
         WhatsApp Ibu Kakang
       </a>
     </div>
@@ -381,6 +429,77 @@ const preorderSteps = [
     animation-delay: -1.7s;
   }
 
+  :global(.preorder-panel) {
+    background:
+      radial-gradient(circle at 8% 16%, rgba(242, 202, 126, 0.26), transparent 28%),
+      radial-gradient(circle at 88% 4%, rgba(185, 216, 194, 0.32), transparent 24%),
+      linear-gradient(120deg, rgba(255, 252, 246, 0.9), rgba(248, 236, 215, 0.72)),
+      repeating-linear-gradient(90deg, rgba(238, 183, 173, 0.14) 0 1px, transparent 1px 18px);
+  }
+
+  :global(.preorder-flow) {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    counter-reset: preorder;
+  }
+
+  :global(.preorder-flow)::before {
+    content: '';
+    position: absolute;
+    left: 1.7rem;
+    top: 2rem;
+    bottom: 2rem;
+    width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(138, 95, 63, 0.18), rgba(138, 95, 63, 0.52), rgba(138, 95, 63, 0.18));
+  }
+
+  :global(.preorder-step) {
+    position: relative;
+    display: grid;
+    min-height: 150px;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    border: 1px solid rgba(138, 95, 63, 0.16);
+    border-radius: 28px;
+    background: rgba(255, 252, 246, 0.76);
+    box-shadow: 0 14px 36px rgba(89, 64, 42, 0.08);
+    padding: 1rem;
+  }
+
+  :global(.preorder-step__number) {
+    position: absolute;
+    right: 1rem;
+    top: 0.8rem;
+    font-family: Georgia, Cambria, "Times New Roman", serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1;
+    color: rgba(138, 95, 63, 0.12);
+  }
+
+  :global(.preorder-step__icon) {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 3.4rem;
+    height: 3.4rem;
+    place-items: center;
+    border: 1px solid rgba(138, 95, 63, 0.18);
+    border-radius: 22px;
+    background: linear-gradient(145deg, #fffaf1, #f8ecd7);
+    color: #8a5f3f;
+    box-shadow: 0 10px 24px rgba(89, 64, 42, 0.1);
+  }
+
+  :global(.preorder-step__icon svg) {
+    width: 1.55rem;
+    height: 1.55rem;
+    stroke-width: 2.2;
+  }
+
   @keyframes floatPage {
     0%,
     100% {
@@ -434,6 +553,36 @@ const preorderSteps = [
     :global(.floating-page--two) {
       right: 12%;
       top: 53%;
+    }
+  }
+
+  @media (min-width: 768px) {
+    :global(.preorder-flow) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    :global(.preorder-flow)::before {
+      display: none;
+    }
+
+    :global(.preorder-step) {
+      grid-template-columns: 1fr;
+      align-content: start;
+    }
+
+    :global(.preorder-step)::after {
+      content: '';
+      position: absolute;
+      left: calc(100% - 0.25rem);
+      top: 2.65rem;
+      width: calc(1rem + 0.5rem);
+      height: 2px;
+      background: linear-gradient(90deg, rgba(138, 95, 63, 0.32), rgba(138, 95, 63, 0));
+    }
+
+    :global(.preorder-step:nth-child(3n)::after),
+    :global(.preorder-step:last-child)::after {
+      display: none;
     }
   }
 

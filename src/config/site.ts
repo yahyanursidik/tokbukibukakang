@@ -10,6 +10,8 @@ export const siteConfig = {
     'Books by Ibunya Kakang menyediakan buku anak Islami, resensi bacaan keluarga, dan informasi pre-order dengan nuansa ramah orang tua.',
   logoPath: '/brand/ibu-kakang-logo.png',
   faviconPath: '/brand/favicon.png',
+  whatsappNumber: '6285723508949',
+  whatsappUrl: 'https://wa.me/6285723508949',
   navItems: [
     { label: 'Beranda', href: '/' },
     { label: 'Buku', href: '/buku' },
