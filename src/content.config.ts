@@ -20,6 +20,7 @@ const books = defineCollection({
     categories: z.array(z.string()).min(1),
     themes: z.array(z.string()).min(1),
     price: z.number().int().min(0),
+    originalPrice: z.number().int().min(0).optional(),
     coverImage: z.string(),
     galleryImages: z.array(z.string()).optional(),
     shortDescription: z.string(),

@@ -23,6 +23,7 @@ export type PublicBook = {
   categories: string[];
   themes: string[];
   price: number;
+  originalPrice?: number;
   coverImage: string;
   galleryImages: string[];
   shortDescription: string;
@@ -115,6 +116,7 @@ export const mapBookRow = (row: BookRow): PublicBook => ({
   categories: row.categories,
   themes: row.themes,
   price: row.price,
+  originalPrice: typeof row.original_price === 'number' ? row.original_price : undefined,
   coverImage: row.cover_image,
   galleryImages: row.gallery_images,
   shortDescription: row.short_description,

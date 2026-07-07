@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { siteConfig } from '@/config/site';
 import { listPublicBooks, listPublicPoPeriods, listPublicReviews } from '@/lib/content/public';
+import { formatRupiah, getSavingsPercent, hasDiscountPrice } from '@/lib/pricing';
 
 export const prerender = false;
 
@@ -22,12 +23,6 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
   day: 'numeric',
   month: 'long',
   year: 'numeric'
-});
-
-const formatPrice = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0
 });
 
 const reasons = [
@@ -157,7 +152,9 @@ const preorderSteps = [
       {
         featuredBooks.map((book) => (
           <article class="soft-card flex flex-col gap-4 overflow-hidden p-5">
-            <img class="aspect-[4/3] w-full rounded-[24px] bg-parchment object-cover" src={book.coverImage} alt={`Sampul ${book.title}`} loading="lazy" />
+            <div class="grid aspect-[3/4] place-items-center rounded-[24px] bg-parchment/80 p-3">
+              <img class="h-full w-full object-contain" src={book.coverImage} alt={`Sampul ${book.title}`} loading="lazy" />
+            </div>
             <div>
               <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">
                 {book.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}
@@ -167,7 +164,11 @@ const preorderSteps = [
             </div>
             <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#eadcc7] pt-4 text-sm">
               <span class="font-semibold text-[#5f564e]">Usia {book.ageMin}-{book.ageMax}</span>
-              <span class="font-bold text-ink">{formatPrice.format(book.price)}</span>
+              <span class="text-right">
+                {hasDiscountPrice(book) && <span class="block text-xs font-semibold text-[#8d8278] line-through">{formatRupiah(book.originalPrice!)}</span>}
+                <span class="block font-bold text-ink">{formatRupiah(book.price)}</span>
+                {hasDiscountPrice(book) && <span class="block text-[0.68rem] font-bold text-date">Hemat {getSavingsPercent(book)}%</span>}
+              </span>
             </div>
           </article>
         ))

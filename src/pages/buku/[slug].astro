@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { getPublicBookBySlug, listPublicBooks, listPublicPoPeriods } from '@/lib/content/public';
+import { formatRupiah, getSavingsAmount, getSavingsPercent, hasDiscountPrice } from '@/lib/pricing';
 
 export const prerender = false;
 
@@ -35,12 +36,6 @@ const relatedBooks = allBooks
   .slice(0, 3)
   .map((item) => item.entry);
 
-const formatPrice = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0
-});
-
 const formatDate = new Intl.DateTimeFormat('id-ID', {
   day: 'numeric',
   month: 'long',
@@ -59,7 +54,7 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
         <div class="relative bg-parchment p-6 sm:p-8">
           <img
             data-product-gallery-main
-            class="mx-auto aspect-[4/3] w-full max-w-xl rounded-[28px] border border-date/20 object-cover shadow-soft"
+            class="mx-auto aspect-[3/4] w-full max-w-sm rounded-[28px] border border-date/20 bg-white/70 object-contain p-4 shadow-soft"
             src={data.coverImage}
             alt={`Sampul ${data.title}`}
           />
@@ -73,7 +68,7 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
                   data-gallery-alt={`${index === 0 ? 'Sampul' : 'Foto produk'} ${data.title}`}
                   aria-label={`Lihat gambar ${index + 1} ${data.title}`}
                 >
-                  <img class="h-full w-full rounded-xl object-cover" src={imageUrl} alt="" loading={index === 0 ? 'eager' : 'lazy'} />
+                  <img class="h-full w-full rounded-xl object-contain" src={imageUrl} alt="" loading={index === 0 ? 'eager' : 'lazy'} />
                 </button>
               ))}
             </div>
@@ -108,11 +103,19 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
               <dt class="font-bold text-date">Rekomendasi usia</dt>
               <dd class="mt-1 text-[#5f564e]">{data.ageMin}-{data.ageMax} tahun</dd>
             </div>
-            <div class="rounded-2xl bg-white/62 p-4">
-              <dt class="font-bold text-date">Harga</dt>
-              <dd class="mt-1 font-serif text-2xl font-bold text-ink">{formatPrice.format(data.price)}</dd>
-            </div>
           </dl>
+
+          <section class="mt-6 rounded-3xl border border-date/15 bg-white/72 p-5">
+            <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">{data.stockType === 'preorder' ? 'Harga PO' : 'Harga jual'}</p>
+            {hasDiscountPrice(data) && (
+              <div class="mt-3 flex flex-wrap items-center gap-2">
+                <span class="text-base font-semibold text-[#8d8278] line-through">{formatRupiah(data.originalPrice!)}</span>
+                <span class="rounded-full bg-honey/70 px-3 py-1 text-xs font-bold text-date">Hemat {getSavingsPercent(data)}%</span>
+              </div>
+            )}
+            <p class="mt-1 font-serif text-4xl font-bold text-ink">{formatRupiah(data.price)}</p>
+            {hasDiscountPrice(data) && <p class="mt-2 text-sm font-semibold text-[#70675e]">Lebih hemat {formatRupiah(getSavingsAmount(data))} dari harga asli.</p>}
+          </section>
 
           <div class="mt-6 grid gap-4">
             <div>
@@ -202,7 +205,7 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
 
         {data.manhajNotes && (
           <article class="soft-card p-6 sm:p-8">
-            <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Catatan manhaj</p>
+            <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Catatan kesesuaian manhaj</p>
             <p class="mt-4 text-[#5f564e]">{data.manhajNotes}</p>
           </article>
         )}
@@ -244,11 +247,14 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
           relatedBooks.length > 0 ? (
             relatedBooks.map((related) => (
               <article class="soft-card overflow-hidden">
-                <img class="aspect-[4/3] w-full bg-parchment object-cover" src={related.coverImage} alt={`Sampul ${related.title}`} loading="lazy" />
+                <div class="grid aspect-[3/4] place-items-center bg-parchment/80 p-4">
+                  <img class="h-full w-full object-contain" src={related.coverImage} alt={`Sampul ${related.title}`} loading="lazy" />
+                </div>
                 <div class="p-5">
                   <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">Usia {related.ageMin}-{related.ageMax}</p>
                   <h3 class="mt-2 font-serif text-xl font-bold leading-tight text-ink">{related.title}</h3>
-                  <p class="mt-3 text-sm text-[#70675e]">{related.shortDescription}</p>
+                  <p class="mt-3 text-sm leading-6 text-[#70675e]">{related.shortDescription}</p>
+                  <p class="mt-4 font-serif text-xl font-bold text-ink">{formatRupiah(related.price)}</p>
                   <a class="button-secondary mt-5" href={`/buku/${related.slug}`}>
                     Lihat detail
                   </a>

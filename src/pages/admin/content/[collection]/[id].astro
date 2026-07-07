@@ -50,6 +50,21 @@ try {
 } catch (error) {
   return new Response(null, { status: 404 });
 }
+
+const isBookCollection = collection.key === 'books';
+const wideBookFields = new Set([
+  'cover_image',
+  'gallery_images',
+  'short_description',
+  'review_summary',
+  'parent_notes',
+  'manhaj_notes',
+  'external_review_sources'
+]);
+const getFieldClass = (fieldName: string, isWideType = false) => [
+  'grid gap-2 rounded-3xl border border-[#eadcc7] bg-white/68 p-4 text-sm font-bold text-[#5f564e]',
+  (isWideType || (isBookCollection && wideBookFields.has(fieldName))) && 'md:col-span-2'
+];
 ---
 
 <AdminShell title={`Edit ${collection.singularLabel}`} currentPath={Astro.url.pathname}>
@@ -63,6 +78,13 @@ try {
   {errorMessage && <div class="mt-6 rounded-3xl border border-date/25 bg-parchment/80 p-4 text-sm font-bold text-date">{errorMessage}</div>}
 
   <section class="soft-card mt-6 p-5 sm:p-6">
+    {isBookCollection && (
+      <div class="mb-5 grid gap-3 text-sm text-[#70675e] md:grid-cols-3">
+        <p class="rounded-2xl bg-parchment/70 p-4"><strong class="text-date">Harga PO</strong><br />Harga utama yang dipakai checkout.</p>
+        <p class="rounded-2xl bg-parchment/70 p-4"><strong class="text-date">Harga asli</strong><br />Isi lebih besar dari harga PO agar tampil dicoret.</p>
+        <p class="rounded-2xl bg-parchment/70 p-4"><strong class="text-date">Cover utuh</strong><br />Preview cover memakai object-fit contain supaya tidak terpotong.</p>
+      </div>
+    )}
     <form class="grid gap-4 md:grid-cols-2" method="post" enctype="multipart/form-data">
       {collection.fields.map((field) => (
         field.type === 'book-multiselect' ? (
@@ -96,34 +118,34 @@ try {
             )}
           </fieldset>
         ) : field.type === 'storage-image' ? (
-          <label class="grid gap-3 text-sm font-bold text-[#5f564e] md:col-span-2">
+          <label class:list={getFieldClass(field.name, true)}>
             {field.label}
             {getFormValue(row, field) && (
-              <img class="aspect-[4/3] w-full max-w-sm rounded-3xl border border-[#eadcc7] bg-parchment object-cover shadow-soft" src={String(getFormValue(row, field))} alt={`${field.label} saat ini`} loading="lazy" />
+              <img class="aspect-[3/4] w-full max-w-xs rounded-3xl border border-[#eadcc7] bg-parchment object-contain p-3 shadow-soft" src={String(getFormValue(row, field))} alt={`${field.label} saat ini`} loading="lazy" />
             )}
             <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={`${field.name}_file`} type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
-            <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={field.name} type="text" value={String(getFormValue(row, field) ?? '')} placeholder="Atau tempel URL/path gambar cover" />
+            <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={field.name} type="text" value={String(getFormValue(row, field) ?? '')} placeholder={field.placeholder ?? 'Atau tempel URL/path gambar cover'} />
             {field.hint && <span class="text-xs font-medium text-[#82766b]">{field.hint}</span>}
           </label>
         ) : field.type === 'storage-gallery' ? (
-          <label class="grid gap-3 text-sm font-bold text-[#5f564e] md:col-span-2">
+          <label class:list={getFieldClass(field.name, true)}>
             {field.label}
             {getSelectedContentValues(row, field).length > 0 && (
               <div class="grid gap-3 rounded-3xl border border-[#eadcc7] bg-white/72 p-3 sm:grid-cols-2 lg:grid-cols-3">
                 {getSelectedContentValues(row, field).map((imageUrl) => (
-                  <img class="aspect-[4/3] w-full rounded-2xl bg-parchment object-cover" src={imageUrl} alt="Gambar galeri produk" loading="lazy" />
+                  <img class="aspect-[4/3] w-full rounded-2xl bg-parchment object-contain p-2" src={imageUrl} alt="Gambar galeri produk" loading="lazy" />
                 ))}
               </div>
             )}
             <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={`${field.name}_files`} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple />
-            <textarea class="min-h-28 rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={field.name} placeholder="Satu URL galeri per baris">{getFormValue(row, field)}</textarea>
+            <textarea class="min-h-28 rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={field.name} placeholder={field.placeholder ?? 'Satu URL galeri per baris'}>{getFormValue(row, field)}</textarea>
             {field.hint && <span class="text-xs font-medium text-[#82766b]">{field.hint}</span>}
           </label>
         ) : (
-          <label class:list={['grid gap-2 text-sm font-bold text-[#5f564e]', (field.type === 'textarea' || field.type === 'json') && 'md:col-span-2']}>
+          <label class:list={getFieldClass(field.name, field.type === 'textarea' || field.type === 'json' || field.type === 'list')}>
             {field.label}
             {field.type === 'textarea' || field.type === 'json' || field.type === 'list' ? (
-              <textarea class="min-h-28 rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={field.name} required={field.required}>{getFormValue(row, field)}</textarea>
+              <textarea class="min-h-28 rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={field.name} required={field.required} placeholder={field.placeholder ?? ''}>{getFormValue(row, field)}</textarea>
             ) : field.type === 'select' ? (
               <select class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={field.name} required={field.required}>
                 {(field.options ?? []).map((option) => <option value={option.value} selected={getFormValue(row, field) === option.value}>{option.label}</option>)}
@@ -134,7 +156,7 @@ try {
                 Ya
               </span>
             ) : (
-              <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={field.name} type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'} value={String(getFormValue(row, field) ?? '')} required={field.required} />
+              <input class="rounded-3xl border border-[#eadcc7] bg-white/80 px-4 py-3 font-normal text-ink outline-none focus:border-date focus:ring-4 focus:ring-honey/30" name={field.name} type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'} value={String(getFormValue(row, field) ?? '')} required={field.required} placeholder={field.placeholder ?? ''} />
             )}
             {field.hint && <span class="text-xs font-medium text-[#82766b]">{field.hint}</span>}
           </label>

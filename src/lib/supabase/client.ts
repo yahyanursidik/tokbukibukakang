@@ -25,6 +25,7 @@ export type Database = {
           categories: string[];
           themes: string[];
           price: number;
+          original_price: number | null;
           cover_image: string;
           gallery_images: string[];
           short_description: string;
@@ -50,6 +51,7 @@ export type Database = {
           categories?: string[];
           themes?: string[];
           price?: number;
+          original_price?: number | null;
           cover_image: string;
           gallery_images?: string[];
           short_description: string;

@@ -35,6 +35,7 @@ type FieldConfig = {
   required?: boolean;
   options?: { label: string; value: string }[];
   hint?: string;
+  placeholder?: string;
 };
 
 type CollectionConfig = {
@@ -57,20 +58,21 @@ export const contentCollections: Record<ContentCollectionKey, CollectionConfig> 
     listColumns: [
       { label: 'Judul', field: 'title' },
       { label: 'Stok', field: 'stock_type', type: 'status' },
-      { label: 'Harga', field: 'price', type: 'currency' },
+      { label: 'Harga PO/Jual', field: 'price', type: 'currency' },
       { label: 'Aktif', field: 'is_active', type: 'boolean' }
     ],
     fields: [
-      { name: 'title', label: 'Judul', type: 'text', required: true },
-      { name: 'slug', label: 'Slug', type: 'text', required: true, hint: 'Gunakan huruf kecil dan tanda hubung.' },
-      { name: 'subtitle', label: 'Subjudul', type: 'text' },
-      { name: 'author', label: 'Penulis', type: 'text' },
-      { name: 'publisher', label: 'Penerbit', type: 'text' },
+      { name: 'title', label: 'Judul buku', type: 'text', required: true, placeholder: 'Contoh: Adab Sehari-hari Anak Muslim' },
+      { name: 'slug', label: 'Slug URL', type: 'text', required: true, hint: 'Gunakan huruf kecil dan tanda hubung.', placeholder: 'adab-sehari-hari-anak-muslim' },
+      { name: 'subtitle', label: 'Subjudul', type: 'text', placeholder: 'Kalimat pendek di bawah judul' },
+      { name: 'author', label: 'Penulis', type: 'text', placeholder: 'Nama penulis atau tim penyusun' },
+      { name: 'publisher', label: 'Penerbit', type: 'text', placeholder: 'Nama penerbit' },
       { name: 'age_min', label: 'Usia minimum', type: 'number', required: true },
       { name: 'age_max', label: 'Usia maksimum', type: 'number', required: true },
       { name: 'categories', label: 'Kategori', type: 'list', required: true, hint: 'Pisahkan dengan koma atau baris baru.' },
       { name: 'themes', label: 'Tema', type: 'list', required: true, hint: 'Pisahkan dengan koma atau baris baru.' },
-      { name: 'price', label: 'Harga', type: 'number', required: true },
+      { name: 'price', label: 'Harga PO / harga jual', type: 'number', required: true, hint: 'Harga ini yang tampil sebagai harga utama dan masuk ke keranjang.' },
+      { name: 'original_price', label: 'Harga asli', type: 'number', hint: 'Opsional. Isi harga sebelum diskon/PO agar tampil dicoret dan terlihat lebih hemat.' },
       {
         name: 'cover_image',
         label: 'Cover buku',
@@ -84,10 +86,10 @@ export const contentCollections: Record<ContentCollectionKey, CollectionConfig> 
         type: 'storage-gallery',
         hint: 'Upload foto tambahan seperti cover belakang, isi buku, atau detail paket. Satu URL per baris bila ingin memakai gambar yang sudah ada.'
       },
-      { name: 'short_description', label: 'Deskripsi singkat', type: 'textarea', required: true },
-      { name: 'review_summary', label: 'Ringkasan resensi', type: 'textarea', required: true },
-      { name: 'parent_notes', label: 'Catatan orang tua', type: 'textarea', required: true },
-      { name: 'manhaj_notes', label: 'Catatan kurasi Books by Ibunya Kakang', type: 'textarea', required: true },
+      { name: 'short_description', label: 'Deskripsi singkat', type: 'textarea', required: true, placeholder: 'Ringkas isi/manfaat buku dalam 1-2 kalimat.' },
+      { name: 'review_summary', label: 'Ringkasan resensi', type: 'textarea', required: true, placeholder: 'Soroti kelebihan buku dan situasi baca yang cocok.' },
+      { name: 'parent_notes', label: 'Catatan orang tua', type: 'textarea', required: true, placeholder: 'Arahan praktis untuk orang tua saat mendampingi anak.' },
+      { name: 'manhaj_notes', label: 'Catatan kesesuaian manhaj', type: 'textarea', required: true, placeholder: 'Catatan kehati-hatian isi, adab, dalil, atau batasan penggunaan buku.' },
       {
         name: 'stock_type',
         label: 'Tipe stok',
@@ -460,6 +462,15 @@ export const parseContentForm = async (collection: CollectionConfig, formData: F
     }
 
     values[field.name] = rawValue;
+  }
+
+  if (collection.key === 'books') {
+    const price = Number(values.price);
+    const originalPrice = values.original_price === null ? null : Number(values.original_price);
+
+    if (originalPrice !== null && Number.isFinite(originalPrice) && Number.isFinite(price) && originalPrice <= price) {
+      errors.push('Harga asli harus lebih besar dari harga PO / harga jual agar diskon terlihat benar.');
+    }
   }
 
   if (errors.length > 0) {
