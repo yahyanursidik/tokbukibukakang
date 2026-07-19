@@ -7,6 +7,12 @@ export type PaymentStatus = 'waiting' | 'waiting_verification' | 'confirmed' | '
 export type StockType = 'preorder' | 'ready_stock';
 export type ReviewSourceType = 'original' | 'external_summary';
 export type PoPeriodStatus = 'draft' | 'open' | 'closed' | 'archived';
+export type CustomerStatus = 'active' | 'inactive' | 'blocked';
+export type CustomerSegment = 'prospect' | 'new' | 'repeat' | 'vip' | 'blocked';
+export type CustomerInteractionType = 'note' | 'whatsapp' | 'call' | 'email';
+export type CustomerInteractionDirection = 'internal' | 'outbound' | 'inbound';
+export type EmailType = 'invoice' | 'invoice_resend' | 'payment_reminder' | 'follow_up';
+export type EmailDeliveryStatus = 'sent' | 'failed';
 type NoRelationships = [];
 
 export type Database = {
@@ -159,6 +165,7 @@ export type Database = {
       orders: {
         Row: {
           id: string;
+          customer_id: string | null;
           order_number: string;
           invoice_token: string;
           customer_name: string;
@@ -176,6 +183,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          customer_id?: string | null;
           order_number?: string;
           invoice_token?: string;
           customer_name: string;
@@ -194,6 +202,70 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['orders']['Insert']>;
         Relationships: NoRelationships;
       };
+      customers: {
+        Row: {
+          id: string;
+          full_name: string;
+          phone: string;
+          email: string | null;
+          default_address: string | null;
+          city: string | null;
+          province: string | null;
+          postal_code: string | null;
+          status: CustomerStatus;
+          tags: string[];
+          internal_notes: string | null;
+          whatsapp_opt_in: boolean;
+          email_opt_in: boolean;
+          email_subscribed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          full_name: string;
+          phone: string;
+          email?: string | null;
+          default_address?: string | null;
+          city?: string | null;
+          province?: string | null;
+          postal_code?: string | null;
+          status?: CustomerStatus;
+          tags?: string[];
+          internal_notes?: string | null;
+          whatsapp_opt_in?: boolean;
+          email_opt_in?: boolean;
+          email_subscribed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['customers']['Insert']>;
+        Relationships: NoRelationships;
+      };
+      customer_interactions: {
+        Row: {
+          id: string;
+          customer_id: string;
+          interaction_type: CustomerInteractionType;
+          direction: CustomerInteractionDirection;
+          summary: string;
+          occurred_at: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          customer_id: string;
+          interaction_type?: CustomerInteractionType;
+          direction?: CustomerInteractionDirection;
+          summary: string;
+          occurred_at?: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['customer_interactions']['Insert']>;
+        Relationships: NoRelationships;
+      };
       payment_settings: {
         Row: {
           id: boolean;
@@ -205,6 +277,9 @@ export type Database = {
           whatsapp_admin_phone: string | null;
           payment_confirmation_notes: string | null;
           invoice_footer: string | null;
+          email_sender_name: string | null;
+          email_sender_address: string | null;
+          mailketing_list_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -218,6 +293,9 @@ export type Database = {
           whatsapp_admin_phone?: string | null;
           payment_confirmation_notes?: string | null;
           invoice_footer?: string | null;
+          email_sender_name?: string | null;
+          email_sender_address?: string | null;
+          mailketing_list_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -302,6 +380,36 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['invoice_logs']['Insert']>;
         Relationships: NoRelationships;
       };
+      email_logs: {
+        Row: {
+          id: string;
+          customer_id: string | null;
+          order_id: string | null;
+          email_type: EmailType;
+          recipient: string;
+          subject: string;
+          message: string;
+          status: EmailDeliveryStatus;
+          provider_response: Json;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          customer_id?: string | null;
+          order_id?: string | null;
+          email_type: EmailType;
+          recipient: string;
+          subject: string;
+          message: string;
+          status: EmailDeliveryStatus;
+          provider_response?: Json;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['email_logs']['Insert']>;
+        Relationships: NoRelationships;
+      };
       admin_profiles: {
         Row: {
           id: string;
@@ -323,7 +431,20 @@ export type Database = {
         Relationships: NoRelationships;
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      customer_overview: {
+        Row: Database['public']['Tables']['customers']['Row'] & {
+          total_orders: number;
+          total_spent: number;
+          average_order_value: number;
+          first_order_at: string | null;
+          last_order_at: string | null;
+          open_orders: number;
+          segment: CustomerSegment;
+        };
+        Relationships: NoRelationships;
+      };
+    };
     Functions: {
       create_manual_checkout_order: {
         Args: {
@@ -351,6 +472,10 @@ export type Database = {
           total: number;
           duplicate: boolean;
         }[];
+      };
+      normalize_customer_phone: {
+        Args: { value: string };
+        Returns: string;
       };
     };
   };

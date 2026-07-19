@@ -8,6 +8,9 @@ The migration enables RLS on all transaction tables.
 - Anonymous customers can create payment confirmations through `confirm_manual_payment`.
 - Anonymous customers cannot read or update transaction rows by default.
 - Authenticated admins listed in `admin_profiles` can read/update order data.
+- Authenticated admins can manage customer CRM profiles and customer interaction logs.
+- Checkout creates or links a customer profile automatically using a normalized WhatsApp number.
+- Mailketing delivery logs are admin-only; API tokens remain server-only.
 - `invoice_logs` are admin-only because they may contain WhatsApp recipients and message content.
 - `admin_profiles` are readable only by admins.
 
