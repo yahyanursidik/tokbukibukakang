@@ -91,6 +91,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const html = renderBrandedEmail({
       message,
+      logoUrl: new URL('/brand/favicon.png', request.url).toString(),
       actionUrl,
       actionLabel: body.action_label?.trim(),
       transactional: emailType !== 'follow_up'

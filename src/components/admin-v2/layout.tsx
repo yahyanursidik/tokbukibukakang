@@ -53,10 +53,10 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-20 items-center justify-between border-b border-white/10 px-5">
-          <Link to="/" className="min-w-0" onClick={onClose}>
-            <span className="block truncate text-sm font-bold">Books by Ibunya Kakang</span>
-            <span className="mt-0.5 block text-xs text-white/55">Dashboard Refine</span>
+        <div className="flex h-20 items-center justify-between border-b border-white/10 px-4">
+          <Link to="/" className="flex min-w-0 items-center gap-3" onClick={onClose}>
+            <img className="h-11 w-11 shrink-0 rounded-md bg-[#fffaf1] object-cover" src="/brand/favicon.png" alt="Logo Books by Ibunya Kakang" />
+            <span className="min-w-0"><span className="block truncate text-sm font-bold">Books by Ibunya Kakang</span><span className="mt-0.5 block text-xs text-white/55">Dashboard Refine</span></span>
           </Link>
           <button className="rounded-md p-2 text-white/70 hover:bg-white/10 lg:hidden" type="button" onClick={onClose} aria-label="Tutup menu">
             <X className="h-5 w-5" />
@@ -121,6 +121,7 @@ export function AdminLayout() {
           <Button className="lg:hidden" variant="secondary" size="icon" onClick={() => setMenuOpen(true)} aria-label="Buka menu">
             <Menu className="h-5 w-5" />
           </Button>
+          <img className="h-9 w-9 shrink-0 rounded-md border border-[#ded8cf] object-cover lg:hidden" src="/brand/favicon.png" alt="" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1 text-xs font-medium text-[#81776d]">
               Admin <ChevronRight className="h-3 w-3" />
