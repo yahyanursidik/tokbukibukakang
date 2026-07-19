@@ -23,9 +23,7 @@ export function LoginPage() {
       <section className="flex items-center justify-center p-5 sm:p-8">
         <div className="w-full max-w-md rounded-lg border border-[#ded8cf] bg-white p-6 shadow-[0_22px_70px_rgba(52,43,35,0.12)] sm:p-8">
           <div className="mb-8">
-            <div className="grid h-11 w-11 place-items-center rounded-md bg-[#2f2a25] text-white">
-              <LockKeyhole className="h-5 w-5" />
-            </div>
+            <img className="h-20 w-20 rounded-md border border-[#eadfce] bg-[#fffaf1] object-cover shadow-sm" src="/brand/favicon.png" alt="Logo Books by Ibunya Kakang" />
             <p className="mt-5 text-xs font-bold uppercase text-[#8a5f3f]">Books by Ibunya Kakang</p>
             <h1 className="mt-2 text-2xl font-bold">Masuk ke dashboard</h1>
             <p className="mt-2 text-sm leading-6 text-[#756c63]">Kelola katalog, periode PO, invoice, dan pembayaran dari satu tempat.</p>

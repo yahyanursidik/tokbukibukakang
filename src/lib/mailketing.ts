@@ -111,6 +111,7 @@ const escapeHtml = (value: string) => value
 
 export const renderBrandedEmail = (values: {
   message: string;
+  logoUrl: string;
   actionUrl?: string;
   actionLabel?: string;
   transactional: boolean;
@@ -126,5 +127,5 @@ export const renderBrandedEmail = (values: {
     ? 'Email ini berkaitan dengan invoice atau transaksi Anda.'
     : 'Bila tidak ingin menerima kabar berikutnya, silakan balas email ini agar preferensi Anda kami perbarui.';
 
-  return `<!doctype html><html><body style="margin:0;background:#f6f4f0;font-family:Arial,sans-serif;color:#2f2a25"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f4f0;padding:24px 12px"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #e2ddd5;border-radius:8px;overflow:hidden"><tr><td style="background:#292521;padding:22px 28px;color:#ffffff"><strong style="font-size:17px">Books by Ibunya Kakang</strong><div style="margin-top:4px;font-size:12px;color:#d7cec5">Buku pilihan untuk tumbuh bersama keluarga</div></td></tr><tr><td style="padding:30px 28px">${paragraphs}${action}<p style="margin:28px 0 0;padding-top:18px;border-top:1px solid #eee9e2;font-size:12px;line-height:1.6;color:#81776d">${preference}</p></td></tr></table></td></tr></table></body></html>`;
+  return `<!doctype html><html><body style="margin:0;background:#f6f4f0;font-family:Arial,sans-serif;color:#2f2a25"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f4f0;padding:24px 12px"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #e2ddd5;border-radius:8px;overflow:hidden"><tr><td style="background:#292521;padding:18px 28px;color:#ffffff"><table role="presentation" cellspacing="0" cellpadding="0"><tr><td style="padding-right:14px"><img src="${escapeHtml(values.logoUrl)}" width="64" height="64" alt="Logo Books by Ibunya Kakang" style="display:block;width:64px;height:64px;border-radius:6px;background:#fffaf1;object-fit:cover"></td><td><strong style="font-size:17px;line-height:1.35">Books by Ibunya Kakang</strong><div style="margin-top:4px;font-size:12px;line-height:1.5;color:#d7cec5">Buku pilihan untuk tumbuh bersama keluarga</div></td></tr></table></td></tr><tr><td style="padding:30px 28px">${paragraphs}${action}<p style="margin:28px 0 0;padding-top:18px;border-top:1px solid #eee9e2;font-size:12px;line-height:1.6;color:#81776d">${preference}</p></td></tr></table></td></tr></table></body></html>`;
 };
