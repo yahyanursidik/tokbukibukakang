@@ -1,0 +1,28 @@
+---
+import AdminApp from '@/components/admin-v2/AdminApp';
+import '@/styles/global.css';
+
+export const prerender = false;
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#2f2a25" />
+    <title>Dashboard Admin | Books by Ibunya Kakang</title>
+  </head>
+  <body class="admin-v2-body">
+    <AdminApp client:only="react" />
+  </body>
+</html>
+
+<style is:global>
+  body.admin-v2-body {
+    min-height: 100vh;
+    padding: 0;
+    background: #f6f4f0;
+  }
+</style>
