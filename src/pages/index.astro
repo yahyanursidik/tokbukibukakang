@@ -3,20 +3,19 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import { siteConfig } from '@/config/site';
 import { listPublicBooks, listPublicPoPeriods, listPublicReviews } from '@/lib/content/public';
 import { formatRupiah, getSavingsPercent, hasDiscountPrice } from '@/lib/pricing';
+import '@/styles/home.css';
 
 export const prerender = false;
 
 const books = await listPublicBooks();
-const featuredBooks = books.filter((book) => book.featured).slice(0, 3);
+const featuredBooks = books.filter((book) => book.featured).slice(0, 4);
+const homeBooks = featuredBooks.length > 0 ? featuredBooks : books.slice(0, 4);
 const reviews = await listPublicReviews(3);
 const poPeriods = await listPublicPoPeriods();
 const activePo = poPeriods
   .filter((period) => period.status === 'open')
   .sort((a, b) => a.endDate.getTime() - b.endDate.getTime())[0];
-const activePoBooks = activePo
-  ? books.filter((book) => activePo.bookSlugs.includes(book.slug))
-  : [];
-
+const activePoBooks = activePo ? books.filter((book) => activePo.bookSlugs.includes(book.slug)).slice(0, 5) : [];
 const poHref = activePo ? `/po/${activePo.slug}` : '/po';
 
 const formatDate = new Intl.DateTimeFormat('id-ID', {
@@ -25,571 +24,239 @@ const formatDate = new Intl.DateTimeFormat('id-ID', {
   year: 'numeric'
 });
 
-const reasons = [
+const formatAgeRange = (ageMin: number, ageMax: number) => {
+  const youngest = Math.min(ageMin, ageMax);
+  const oldest = Math.max(ageMin, ageMax);
+  return youngest === oldest ? `${youngest} tahun` : `${youngest}-${oldest} tahun`;
+};
+
+const formatBookPrice = (price: number) => (price > 0 ? formatRupiah(price) : 'Lihat pilihan paket');
+
+const selectionGuides = [
   {
-    title: 'Buku terkurasi',
-    description: 'Pilihan bacaan disaring agar sesuai untuk keluarga Muslim yang ingin tumbuh pelan, rapi, dan bermakna.'
+    title: 'Cocok untuk usianya',
+    description: 'Rentang usia terlihat sejak awal agar pilihan lebih sesuai dengan tahap tumbuh anak.'
   },
   {
-    title: 'Panduan usia',
-    description: 'Setiap buku diberi rentang usia agar orang tua lebih mudah memilih sesuai tahap anak.'
+    title: 'Tahu isi sebelum membeli',
+    description: 'Baca ringkasan, catatan orang tua, dan Catatan dari Books by Ibunya Kakang.'
   },
   {
-    title: 'Resensi hangat',
-    description: 'Ringkasan dan catatan orang tua ditulis dengan bahasa yang tenang, bukan sekadar daftar kelebihan.'
-  },
-  {
-    title: 'PO transparan',
-    description: 'Periode, estimasi pengiriman, dan catatan PO ditampilkan jelas sejak awal.'
-  },
-  {
-    title: 'Kurasi ramah keluarga',
-    description: 'Konten dipilih dengan perhatian pada adab, manfaat, dan kenyamanan keluarga Muslim.'
+    title: 'Harga PO mudah dibandingkan',
+    description: 'Harga asli, harga PO, dan nilai hemat ditampilkan tanpa perlu menghitung sendiri.'
   }
 ];
 
-const preorderSteps = [
-  {
-    title: 'Pilih buku',
-    description: 'Buka katalog atau periode PO, lalu pilih buku yang cocok untuk keluarga.',
-    icon: 'book'
-  },
-  {
-    title: 'Masukkan keranjang',
-    description: 'Simpan pilihan buku agar jumlah dan total sementara mudah dicek.',
-    icon: 'basket'
-  },
-  {
-    title: 'Checkout manual',
-    description: 'Isi nama, nomor WhatsApp, alamat, dan catatan pesanan.',
-    icon: 'form'
-  },
-  {
-    title: 'Transfer',
-    description: 'Lakukan pembayaran sesuai invoice dan instruksi transfer yang tersedia.',
-    icon: 'bank'
-  },
-  {
-    title: 'Konfirmasi',
-    description: 'Kirim konfirmasi pembayaran agar pesanan bisa diverifikasi.',
-    icon: 'check'
-  },
-  {
-    title: 'Update WhatsApp',
-    description: 'Ibu Kakang mengirim invoice, verifikasi, dan kabar pesanan via WhatsApp.',
-    icon: 'chat'
-  }
-] as const;
-
-const preorderIconPaths = {
-  book: ['M5 5h8a3 3 0 0 1 3 3v12H8a3 3 0 0 0-3 3V5Z', 'M16 8h2a2 2 0 0 1 2 2v10h-4', 'M8 9h5', 'M8 13h5'],
-  basket: ['M6 9h12l-1.2 10H7.2L6 9Z', 'M9 9a3 3 0 0 1 6 0', 'M9 13v3', 'M15 13v3'],
-  form: ['M6 4h9l3 3v13H6V4Z', 'M14 4v4h4', 'M9 11h6', 'M9 15h6', 'M9 18h4'],
-  bank: ['M4 10h16', 'M6 10v9', 'M10 10v9', 'M14 10v9', 'M18 10v9', 'M4 19h16', 'M12 4l8 6H4l8-6Z'],
-  check: ['M20 7 10 17l-5-5', 'M5 20h14'],
-  chat: ['M5 6h14v10H8l-3 3V6Z', 'M8 10h8', 'M8 13h5']
-} as const;
+const orderSteps = [
+  { title: 'Pilih', description: 'Temukan buku berdasarkan usia, kebutuhan, dan resensinya.' },
+  { title: 'Pesan', description: 'Masukkan buku ke keranjang lalu lengkapi data penerima.' },
+  { title: 'Bayar', description: 'Ikuti invoice dan salin nomor rekening yang tersedia.' },
+  { title: 'Pantau', description: 'Konfirmasi pembayaran dan terima kabar pesanan via WhatsApp.' }
+];
 ---
 
 <BaseLayout
   title={siteConfig.name}
-  description="Books by Ibunya Kakang membantu orang tua Muslim memilih bacaan anak Islami yang lembut, terkurasi, dan ramah keluarga."
+  description="Buku anak Islami terkurasi dengan panduan usia, resensi untuk orang tua, dan harga pre-order yang jelas."
 >
-  <section class="home-hero">
-    <img
-      class="home-hero__image"
-      src="/images/hero-muslimah-reading.png"
-      alt="Ilustrasi ibu muslimah berjilbab lebar membacakan buku kepada putra-putrinya"
-      loading="eager"
-      decoding="async"
-    />
-    <div class="home-hero__shade"></div>
-    <div class="home-hero__motion" aria-hidden="true">
-      <span class="floating-page floating-page--one"></span>
-      <span class="floating-page floating-page--two"></span>
-      <span class="floating-page floating-page--three"></span>
-      <span class="reading-glow reading-glow--one"></span>
-      <span class="reading-glow reading-glow--two"></span>
-    </div>
-    <div class="page-shell home-hero__content">
-      <p class="mb-4 inline-flex rounded-full border border-date/20 bg-white/72 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-date">
-        {siteConfig.name}
-      </p>
-      <h1 class="max-w-3xl font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl lg:text-6xl">
-        Bacaan Baik untuk Tumbuh dengan Adab
-      </h1>
-      <p class="mt-5 max-w-2xl text-base text-[#5f564e] sm:text-lg">
-        Teman orang tua Muslim dalam memilih buku anak Islami yang lembut, jelas panduan usianya, dan nyaman dibaca bersama di rumah.
-      </p>
-      <div class="mt-7 flex flex-col gap-3 sm:flex-row">
-        <a class="button-primary" href={poHref}>
-          Lihat Buku PO
-        </a>
-        <a class="button-secondary bg-white/78" href="/resensi">
-          Baca Resensi
-        </a>
+  <section class="store-hero">
+    <div class="page-shell store-hero__grid">
+      <div class="store-hero__copy">
+        <p class="store-kicker">Buku anak Islami pilihan keluarga</p>
+        <h1>Buku yang baik, dipilih dengan lebih yakin.</h1>
+        <p class="store-hero__lead">
+          Temukan bacaan yang sesuai usia anak, pahami isinya lewat resensi, lalu pesan dengan alur PO yang jelas dan mudah diikuti.
+        </p>
+        <div class="store-actions">
+          <a class="store-button store-button--primary" href={poHref}>Lihat buku PO</a>
+          <a class="store-button store-button--quiet" href="/buku">Jelajahi semua buku</a>
+        </div>
+        <ul class="store-trust" aria-label="Keunggulan layanan">
+          <li>Panduan usia</li>
+          <li>Resensi untuk orang tua</li>
+          <li>Info PO transparan</li>
+        </ul>
       </div>
+      <figure class="store-hero__visual">
+        <img
+          src="/images/hero-muslimah-reading.png"
+          alt="Ibu muslimah membacakan buku bersama putra-putrinya"
+          loading="eager"
+          decoding="async"
+        />
+        <figcaption>Momen membaca yang tumbuh bersama anak.</figcaption>
+      </figure>
     </div>
   </section>
 
-  <section class="page-shell">
-    {
-      activePo ? (
-        <article class="watercolor-panel p-6 sm:p-8">
-          <div class="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div>
-              <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">PO sedang dibuka</p>
-              <h2 class="mt-2 font-serif text-3xl font-bold text-ink">{activePo.title}</h2>
-              <p class="mt-3 max-w-3xl text-[#5f564e]">{activePo.description}</p>
-              <dl class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-                <div class="rounded-2xl bg-white/60 p-4">
-                  <dt class="font-bold text-date">Tutup PO</dt>
-                  <dd class="mt-1 text-ink">{formatDate.format(activePo.endDate)}</dd>
+  <section class="po-strip" aria-labelledby="active-po-title">
+    <div class="page-shell">
+      {
+        activePo ? (
+          <div class="po-strip__grid">
+            <div class="po-strip__intro">
+              <p class="store-kicker store-kicker--light">PO sedang dibuka</p>
+              <h2 id="active-po-title">{activePo.title}</h2>
+              <p>{activePo.description}</p>
+              <dl class="po-dates">
+                <div>
+                  <dt>Tutup PO</dt>
+                  <dd>{formatDate.format(activePo.endDate)}</dd>
                 </div>
-                <div class="rounded-2xl bg-white/60 p-4">
-                  <dt class="font-bold text-date">Estimasi kirim</dt>
-                  <dd class="mt-1 text-ink">{formatDate.format(activePo.estimatedShippingDate)}</dd>
+                <div>
+                  <dt>Estimasi kirim</dt>
+                  <dd>{formatDate.format(activePo.estimatedShippingDate)}</dd>
                 </div>
               </dl>
-              {activePoBooks.length > 0 && (
-                <div class="mt-5">
-                  <p class="text-sm font-bold text-date">Buku yang ikut PO</p>
-                  <div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    {activePoBooks.map((book) => (
-                      <a
-                        class="flex min-h-24 gap-3 rounded-2xl border border-date/15 bg-white/68 p-3 transition hover:-translate-y-0.5 hover:border-date/35 hover:bg-white"
-                        href={`/buku/${book.slug}`}
-                      >
-                        <span class="grid aspect-[3/4] w-16 shrink-0 place-items-center rounded-xl bg-parchment/80 p-1.5">
-                          <img class="h-full w-full object-contain" src={book.coverImage} alt={`Sampul ${book.title}`} loading="lazy" />
-                        </span>
-                        <span class="min-w-0 self-center">
-                          <span class="block text-xs font-bold uppercase tracking-[0.12em] text-date">
-                            {book.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}
-                          </span>
-                          <span class="mt-1 block font-serif text-base font-bold leading-snug text-ink">{book.title}</span>
-                        </span>
-                      </a>
-                    ))}
+              <a class="store-button store-button--light" href={poHref}>Lihat detail dan pesan</a>
+            </div>
+            {activePoBooks.length > 0 && (
+              <div class="po-books" aria-label="Buku dalam periode PO">
+                {activePoBooks.map((book) => (
+                  <a class="po-book" href={`/buku/${book.slug}`}>
+                    <span class="po-book__cover">
+                      <img src={book.coverImage} alt={`Sampul ${book.title}`} loading="lazy" />
+                    </span>
+                    <span class="po-book__title">{book.title}</span>
+                    <span class="po-book__price">{formatBookPrice(book.price)}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div class="po-strip__empty">
+            <div>
+              <p class="store-kicker store-kicker--light">Periode pre-order</p>
+              <h2 id="active-po-title">PO berikutnya sedang disiapkan.</h2>
+              <p>Sambil menunggu, Ibu bisa melihat koleksi ready stock dan membaca resensi pilihan.</p>
+            </div>
+            <a class="store-button store-button--light" href="/buku">Lihat buku ready stock</a>
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="store-section" aria-labelledby="featured-title">
+    <div class="page-shell">
+      <header class="store-section__head">
+        <div>
+          <p class="store-kicker">Pilihan untuk dibaca bersama</p>
+          <h2 id="featured-title">Mulai dari buku yang paling sesuai</h2>
+        </div>
+        <a class="store-text-link" href="/buku">Lihat semua buku <span aria-hidden="true">→</span></a>
+      </header>
+      {
+        homeBooks.length > 0 ? (
+          <div class="book-shelf">
+            {homeBooks.map((book) => (
+              <article class="book-tile">
+                <a class="book-tile__cover" href={`/buku/${book.slug}`} aria-label={`Lihat ${book.title}`}>
+                  <img src={book.coverImage} alt={`Sampul ${book.title}`} loading="lazy" />
+                  <span class="book-tile__stock">{book.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}</span>
+                </a>
+                <div class="book-tile__body">
+                  <p class="book-tile__meta">Usia {formatAgeRange(book.ageMin, book.ageMax)}</p>
+                  <h3><a href={`/buku/${book.slug}`}>{book.title}</a></h3>
+                  <p class="book-tile__description">{book.shortDescription}</p>
+                  <div class="book-tile__footer">
+                    <div class="book-price">
+                      {hasDiscountPrice(book) && <del>{formatRupiah(book.originalPrice!)}</del>}
+                      <strong>{formatBookPrice(book.price)}</strong>
+                      {hasDiscountPrice(book) && <span>Hemat {getSavingsPercent(book)}%</span>}
+                    </div>
+                    <a class="book-tile__arrow" href={`/buku/${book.slug}`} aria-label={`Buka detail ${book.title}`}>→</a>
                   </div>
                 </div>
-              )}
-            </div>
-            <a class="button-primary bg-date hover:bg-ink" href={poHref}>
-              Lihat Detail PO
-            </a>
+              </article>
+            ))}
           </div>
-        </article>
-      ) : (
-        <article class="empty-state">
-          <div class="motif motif-bookmark mx-auto mb-5 scale-75" aria-hidden="true"></div>
-          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">PO</p>
-          <h2 class="mt-2 font-serif text-3xl font-bold text-ink">Belum ada PO aktif saat ini.</h2>
-          <p class="mt-3 text-[#5f564e]">Silakan cek katalog buku ready stock atau pantau halaman PO untuk periode berikutnya.</p>
-        </article>
-      )
-    }
+        ) : (
+          <div class="store-empty">Koleksi buku sedang disiapkan.</div>
+        )
+      }
+    </div>
   </section>
 
-  <section class="page-shell py-14">
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Pilihan keluarga</p>
-        <h2 class="font-serif text-3xl font-bold text-ink">Buku unggulan</h2>
+  <section class="selection-section" aria-labelledby="selection-title">
+    <div class="page-shell selection-section__grid">
+      <div class="selection-section__intro">
+        <p class="store-kicker">Tidak perlu memilih sendirian</p>
+        <h2 id="selection-title">Informasi yang ibu butuhkan, sebelum memutuskan.</h2>
+        <p>Setiap halaman buku dirapikan supaya manfaat, isi, dan kecocokannya untuk keluarga mudah dipahami.</p>
+        <a class="store-text-link" href="/panduan-belanja">Baca panduan belanja <span aria-hidden="true">→</span></a>
       </div>
-      <a class="text-sm font-bold text-date hover:text-ink" href="/buku">Lihat semua buku</a>
-    </div>
-    <div class="grid gap-4 md:grid-cols-3">
-      {
-        featuredBooks.map((book) => (
-          <article class="soft-card flex flex-col gap-4 overflow-hidden p-5">
-            <div class="grid aspect-[3/4] place-items-center rounded-[24px] bg-parchment/80 p-3">
-              <img class="h-full w-full object-contain" src={book.coverImage} alt={`Sampul ${book.title}`} loading="lazy" />
-            </div>
+      <ol class="selection-list">
+        {selectionGuides.map((guide, index) => (
+          <li>
+            <span>{String(index + 1).padStart(2, '0')}</span>
             <div>
-              <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">
-                {book.stockType === 'preorder' ? 'Pre-order' : 'Ready stock'}
-              </p>
-              <h3 class="mt-2 font-serif text-xl font-bold leading-tight text-ink">{book.title}</h3>
-              <p class="mt-3 text-sm text-[#70675e]">{book.shortDescription}</p>
+              <h3>{guide.title}</h3>
+              <p>{guide.description}</p>
             </div>
-            <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#eadcc7] pt-4 text-sm">
-              <span class="font-semibold text-[#5f564e]">Usia {book.ageMin}-{book.ageMax}</span>
-              <span class="text-right">
-                {hasDiscountPrice(book) && <span class="block text-xs font-semibold text-[#8d8278] line-through">{formatRupiah(book.originalPrice!)}</span>}
-                <span class="block font-bold text-ink">{formatRupiah(book.price)}</span>
-                {hasDiscountPrice(book) && <span class="block text-[0.68rem] font-bold text-date">Hemat {getSavingsPercent(book)}%</span>}
-              </span>
-            </div>
-          </article>
-        ))
-      }
-    </div>
-  </section>
-
-  <section class="bg-white/38 py-14">
-    <div class="page-shell">
-      <div class="mb-6 max-w-2xl">
-        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Kenapa dipilih orang tua</p>
-        <h2 class="font-serif text-3xl font-bold text-ink">Kurasi yang hangat, jelas, dan tidak tergesa-gesa</h2>
-      </div>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {
-          reasons.map((reason, index) => (
-            <article class="soft-card p-5">
-              <div class="mb-4 grid h-10 w-10 place-items-center rounded-2xl bg-parchment text-sm font-bold text-date">
-                {index + 1}
-              </div>
-              <h3 class="font-serif text-lg font-bold text-ink">{reason.title}</h3>
-              <p class="mt-2 text-sm text-[#70675e]">{reason.description}</p>
-            </article>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <section class="page-shell py-14">
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Catatan bacaan</p>
-        <h2 class="font-serif text-3xl font-bold text-ink">Resensi pilihan</h2>
-      </div>
-      <a class="text-sm font-bold text-date hover:text-ink" href="/resensi">Buka resensi</a>
-    </div>
-    <div class="grid gap-4 lg:grid-cols-3">
-      {
-        reviews.map((review) => (
-          <article class="soft-card p-5">
-            <p class="text-xs font-bold uppercase tracking-[0.14em] text-date">
-              {review.sourceType === 'original' ? 'Original' : 'Ringkasan'}
-            </p>
-            <h3 class="mt-3 font-serif text-xl font-bold leading-tight text-ink">{review.title}</h3>
-            <p class="mt-3 text-sm text-[#70675e]">{review.summary}</p>
-          </article>
-        ))
-      }
-    </div>
-  </section>
-
-  <section class="page-shell pb-14">
-    <div class="watercolor-panel preorder-panel p-6 sm:p-8">
-      <div class="mb-8 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-        <div class="max-w-2xl">
-          <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Cara pre-order</p>
-          <h2 class="font-serif text-3xl font-bold text-ink">Alur manual yang mudah diikuti</h2>
-          <p class="mt-3 text-[#70675e]">
-            Dari pilih buku sampai update via WhatsApp, setiap tahap dibuat jelas agar orang tua tahu posisi pesanannya.
-          </p>
-        </div>
-        <a class="button-secondary bg-white/78" href={poHref}>Mulai dari buku PO</a>
-      </div>
-      <ol class="preorder-flow">
-        {
-          preorderSteps.map((step, index) => (
-            <li class="preorder-step">
-              <span class="preorder-step__number">{index + 1}</span>
-              <span class="preorder-step__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                  {preorderIconPaths[step.icon].map((path) => <path d={path} />)}
-                </svg>
-              </span>
-              <span class="block">
-                <span class="block text-xs font-bold uppercase tracking-[0.14em] text-date">Langkah {index + 1}</span>
-                <span class="mt-1 block font-serif text-xl font-bold leading-tight text-ink">{step.title}</span>
-                <span class="mt-2 block text-sm leading-6 text-[#70675e]">{step.description}</span>
-              </span>
-            </li>
-          ))
-        }
+          </li>
+        ))}
       </ol>
     </div>
   </section>
 
-  <section class="page-shell pb-16">
-    <div class="soft-card grid gap-5 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-center">
-      <div>
-        <p class="text-sm font-bold uppercase tracking-[0.14em] text-date">Butuh dibantu memilih?</p>
-        <h2 class="font-serif text-3xl font-bold text-ink">Tanya Ibu Kakang dengan tenang</h2>
-        <p class="mt-3 max-w-2xl text-[#70675e]">
-          Kirim pesan WhatsApp untuk bertanya stok, rentang usia, atau rekomendasi bacaan yang sesuai kebutuhan keluarga.
-        </p>
+  {reviews.length > 0 && (
+    <section class="store-section review-section" aria-labelledby="reviews-title">
+      <div class="page-shell review-section__grid">
+        <header>
+          <p class="store-kicker">Catatan sebelum membeli</p>
+          <h2 id="reviews-title">Baca dulu, baru tentukan bukunya.</h2>
+          <p>Resensi membantu ibu melihat tema, pendekatan isi, dan hal yang perlu diperhatikan saat mendampingi anak.</p>
+          <a class="store-button store-button--quiet" href="/resensi">Buka semua resensi</a>
+        </header>
+        <div class="review-list">
+          {reviews.map((review) => (
+            <article>
+              <p>{review.sourceType === 'original' ? 'Resensi Books by Ibunya Kakang' : 'Ringkasan bacaan'}</p>
+              <h3>{review.title}</h3>
+              <div>{review.summary}</div>
+            </article>
+          ))}
+        </div>
       </div>
-      <a class="button-primary bg-[#36543c] hover:bg-date" href={`${siteConfig.whatsappUrl}?text=${encodeURIComponent("Assalamu'alaikum, saya ingin bertanya tentang rekomendasi buku di Books by Ibunya Kakang.")}`}>
-        WhatsApp Ibu Kakang
+    </section>
+  )}
+
+  <section class="order-section" aria-labelledby="order-title">
+    <div class="page-shell">
+      <header class="store-section__head">
+        <div>
+          <p class="store-kicker">Cara memesan</p>
+          <h2 id="order-title">Empat langkah, dari memilih sampai menerima kabar.</h2>
+        </div>
+        <a class="store-text-link" href="/panduan-belanja">Panduan lengkap <span aria-hidden="true">→</span></a>
+      </header>
+      <ol class="order-steps">
+        {orderSteps.map((step, index) => (
+          <li>
+            <span class="order-steps__number">{index + 1}</span>
+            <h3>{step.title}</h3>
+            <p>{step.description}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="help-section">
+    <div class="page-shell help-section__inner">
+      <div>
+        <p class="store-kicker store-kicker--light">Masih bingung memilih?</p>
+        <h2>Ceritakan usia dan kebutuhan anak, kami bantu carikan.</h2>
+        <p>Ibu bisa bertanya tentang isi buku, stok, usia pembaca, atau proses pre-order langsung melalui WhatsApp.</p>
+      </div>
+      <a
+        class="store-button store-button--light"
+        href={`${siteConfig.whatsappUrl}?text=${encodeURIComponent("Assalamu'alaikum, saya ingin dibantu memilih buku yang sesuai untuk anak.")}`}
+      >
+        Tanya Ibu Kakang
       </a>
     </div>
   </section>
 </BaseLayout>
-
-<style>
-  :global(.home-hero) {
-    position: relative;
-    min-height: clamp(560px, 72vh, 760px);
-    overflow: hidden;
-    isolation: isolate;
-    display: grid;
-    align-items: center;
-  }
-
-  :global(.home-hero__image),
-  :global(.home-hero__shade),
-  :global(.home-hero__motion) {
-    position: absolute;
-    inset: 0;
-  }
-
-  :global(.home-hero__image) {
-    z-index: -3;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center right;
-  }
-
-  :global(.home-hero__shade) {
-    z-index: -2;
-    background:
-      linear-gradient(90deg, rgba(255, 248, 239, 0.98) 0%, rgba(255, 248, 239, 0.86) 34%, rgba(255, 248, 239, 0.34) 62%, rgba(255, 248, 239, 0.06) 100%),
-      linear-gradient(0deg, rgba(255, 248, 239, 0.84) 0%, rgba(255, 248, 239, 0) 34%);
-  }
-
-  :global(.home-hero__motion) {
-    z-index: -1;
-    pointer-events: none;
-  }
-
-  :global(.home-hero__content) {
-    padding-top: 5rem;
-    padding-bottom: 6rem;
-  }
-
-  :global(.floating-page) {
-    position: absolute;
-    width: 34px;
-    height: 44px;
-    border: 1px solid rgba(138, 95, 63, 0.28);
-    border-radius: 8px 3px 8px 3px;
-    background: rgba(255, 250, 241, 0.72);
-    box-shadow: 0 12px 30px rgba(138, 95, 63, 0.12);
-    animation: floatPage 7s ease-in-out infinite;
-  }
-
-  :global(.floating-page)::after {
-    content: '';
-    position: absolute;
-    left: 8px;
-    right: 8px;
-    top: 13px;
-    height: 1px;
-    background: rgba(138, 95, 63, 0.24);
-    box-shadow: 0 7px rgba(138, 95, 63, 0.18), 0 14px rgba(138, 95, 63, 0.14);
-  }
-
-  :global(.floating-page--one) {
-    left: 46%;
-    top: 22%;
-    transform: rotate(-12deg);
-  }
-
-  :global(.floating-page--two) {
-    right: 9%;
-    top: 24%;
-    width: 28px;
-    height: 36px;
-    animation-delay: -2.3s;
-  }
-
-  :global(.floating-page--three) {
-    right: 32%;
-    bottom: 17%;
-    width: 30px;
-    height: 39px;
-    animation-delay: -4.4s;
-  }
-
-  :global(.reading-glow) {
-    position: absolute;
-    width: 11px;
-    height: 11px;
-    border-radius: 999px;
-    background: rgba(242, 202, 126, 0.78);
-    box-shadow: 0 0 26px rgba(242, 202, 126, 0.75);
-    animation: glowPulse 3.8s ease-in-out infinite;
-  }
-
-  :global(.reading-glow--one) {
-    right: 38%;
-    top: 49%;
-  }
-
-  :global(.reading-glow--two) {
-    right: 18%;
-    top: 39%;
-    animation-delay: -1.7s;
-  }
-
-  :global(.preorder-panel) {
-    background:
-      radial-gradient(circle at 8% 16%, rgba(242, 202, 126, 0.26), transparent 28%),
-      radial-gradient(circle at 88% 4%, rgba(185, 216, 194, 0.32), transparent 24%),
-      linear-gradient(120deg, rgba(255, 252, 246, 0.9), rgba(248, 236, 215, 0.72)),
-      repeating-linear-gradient(90deg, rgba(238, 183, 173, 0.14) 0 1px, transparent 1px 18px);
-  }
-
-  :global(.preorder-flow) {
-    position: relative;
-    display: grid;
-    gap: 1rem;
-    counter-reset: preorder;
-  }
-
-  :global(.preorder-flow)::before {
-    content: '';
-    position: absolute;
-    left: 1.7rem;
-    top: 2rem;
-    bottom: 2rem;
-    width: 2px;
-    border-radius: 999px;
-    background: linear-gradient(180deg, rgba(138, 95, 63, 0.18), rgba(138, 95, 63, 0.52), rgba(138, 95, 63, 0.18));
-  }
-
-  :global(.preorder-step) {
-    position: relative;
-    display: grid;
-    min-height: 150px;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 1rem;
-    align-items: start;
-    border: 1px solid rgba(138, 95, 63, 0.16);
-    border-radius: 28px;
-    background: rgba(255, 252, 246, 0.76);
-    box-shadow: 0 14px 36px rgba(89, 64, 42, 0.08);
-    padding: 1rem;
-  }
-
-  :global(.preorder-step__number) {
-    position: absolute;
-    right: 1rem;
-    top: 0.8rem;
-    font-family: Georgia, Cambria, "Times New Roman", serif;
-    font-size: 2.4rem;
-    font-weight: 700;
-    line-height: 1;
-    color: rgba(138, 95, 63, 0.12);
-  }
-
-  :global(.preorder-step__icon) {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    width: 3.4rem;
-    height: 3.4rem;
-    place-items: center;
-    border: 1px solid rgba(138, 95, 63, 0.18);
-    border-radius: 22px;
-    background: linear-gradient(145deg, #fffaf1, #f8ecd7);
-    color: #8a5f3f;
-    box-shadow: 0 10px 24px rgba(89, 64, 42, 0.1);
-  }
-
-  :global(.preorder-step__icon svg) {
-    width: 1.55rem;
-    height: 1.55rem;
-    stroke-width: 2.2;
-  }
-
-  @keyframes floatPage {
-    0%,
-    100% {
-      translate: 0 0;
-      rotate: 0deg;
-    }
-    50% {
-      translate: 0 -16px;
-      rotate: 5deg;
-    }
-  }
-
-  @keyframes glowPulse {
-    0%,
-    100% {
-      opacity: 0.42;
-      transform: scale(0.86);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1.18);
-    }
-  }
-
-  @media (max-width: 820px) {
-    :global(.home-hero) {
-      min-height: 680px;
-      align-items: start;
-    }
-
-    :global(.home-hero__image) {
-      object-position: 62% center;
-    }
-
-    :global(.home-hero__shade) {
-      background:
-        linear-gradient(180deg, rgba(255, 248, 239, 0.98) 0%, rgba(255, 248, 239, 0.9) 40%, rgba(255, 248, 239, 0.22) 72%, rgba(255, 248, 239, 0.48) 100%),
-        linear-gradient(90deg, rgba(255, 248, 239, 0.82) 0%, rgba(255, 248, 239, 0.2) 100%);
-    }
-
-    :global(.home-hero__content) {
-      padding-top: 3rem;
-      padding-bottom: 18rem;
-    }
-
-    :global(.floating-page--one) {
-      left: 18%;
-      top: 58%;
-    }
-
-    :global(.floating-page--two) {
-      right: 12%;
-      top: 53%;
-    }
-  }
-
-  @media (min-width: 768px) {
-    :global(.preorder-flow) {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    :global(.preorder-flow)::before {
-      display: none;
-    }
-
-    :global(.preorder-step) {
-      grid-template-columns: 1fr;
-      align-content: start;
-    }
-
-    :global(.preorder-step)::after {
-      content: '';
-      position: absolute;
-      left: calc(100% - 0.25rem);
-      top: 2.65rem;
-      width: calc(1rem + 0.5rem);
-      height: 2px;
-      background: linear-gradient(90deg, rgba(138, 95, 63, 0.32), rgba(138, 95, 63, 0));
-    }
-
-    :global(.preorder-step:nth-child(3n)::after),
-    :global(.preorder-step:last-child)::after {
-      display: none;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    :global(.floating-page),
-    :global(.reading-glow) {
-      animation: none;
-    }
-  }
-</style>

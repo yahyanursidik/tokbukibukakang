@@ -1,0 +1,8 @@
+{
+  "scannedAt": "2026-10-08",
+  "framework": "Astro 7 with Tailwind CSS 4",
+  "fontStack": "Inter body and Georgia display",
+  "palette": "warm paper, terracotta, forest, honey",
+  "motion": "motion installed; restrained CSS motion on public pages",
+  "spacing": "4px-based named scale"
+}

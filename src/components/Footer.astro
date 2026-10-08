@@ -5,18 +5,18 @@ const primaryLinks = siteConfig.navItems.slice(0, 6);
 const supportLinks = siteConfig.navItems.slice(6);
 ---
 
-<footer class="mt-16 hidden border-t border-[#eadcc7]/80 bg-[#fff8ef]/78 lg:block">
-  <div class="page-shell grid gap-8 py-10 md:grid-cols-[1.1fr_0.9fr_0.9fr]">
+<footer class="site-footer">
+  <div class="page-shell grid gap-10 py-12 md:grid-cols-[1.35fr_0.75fr_0.75fr]">
     <section>
       <div class="mb-4 flex items-center gap-3">
-        <img class="h-12 w-12 rounded-2xl border border-date/20 bg-[#fffaf1] object-contain p-1.5 shadow-soft" src={siteConfig.logoPath} alt="" loading="lazy" />
+        <img class="site-footer__logo" src={siteConfig.logoPath} alt="" loading="lazy" />
         <div>
           <p class="font-serif text-xl font-bold text-ink">{siteConfig.name}</p>
-          <p class="text-sm text-[#70675e]">{siteConfig.tagline}</p>
+          <p class="text-sm text-[var(--color-ink-2)]">{siteConfig.tagline}</p>
         </div>
       </div>
-      <p class="max-w-md text-sm text-[#70675e]">
-        Toko buku anak Islami yang membantu keluarga memilih bacaan dengan tenang, jelas, dan terkurasi.
+      <p class="max-w-md text-sm text-[var(--color-ink-2)]">
+        Membantu ibu memilih buku anak Islami melalui panduan usia, resensi yang jujur, dan informasi PO yang jelas.
       </p>
     </section>
 
@@ -34,8 +34,8 @@ const supportLinks = siteConfig.navItems.slice(6);
       </ul>
     </section>
   </div>
-  <div class="border-t border-[#eadcc7]/80 py-4">
-    <p class="page-shell text-xs text-[#70675e]">
+  <div class="border-t border-[var(--color-rule)] py-4">
+    <p class="page-shell text-xs text-[var(--color-ink-2)]">
       &copy; {new Date().getFullYear()} {siteConfig.name}. Bacaan baik untuk tumbuh dengan adab.
     </p>
   </div>

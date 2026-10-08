@@ -1,0 +1,56 @@
+/* Hallmark design tokens: Books by Ibunya Kakang */
+:root {
+  --color-paper: oklch(98% 0.012 82);
+  --color-paper-2: oklch(95% 0.025 82);
+  --color-surface: oklch(99% 0.008 82);
+  --color-ink: oklch(27% 0.025 55);
+  --color-ink-2: oklch(46% 0.025 55);
+  --color-rule: oklch(88% 0.025 75);
+  --color-accent: oklch(49% 0.105 45);
+  --color-accent-ink: oklch(98% 0.012 82);
+  --color-accent-strong: oklch(38% 0.08 45);
+  --color-accent-soft: oklch(92% 0.055 48);
+  --color-forest: oklch(38% 0.055 145);
+  --color-forest-soft: oklch(91% 0.035 145);
+  --color-honey: oklch(84% 0.12 82);
+  --color-focus: oklch(56% 0.15 45);
+  --color-on-dark: oklch(98% 0.012 82);
+  --color-on-dark-muted: oklch(93% 0.018 82);
+  --color-on-forest-muted: oklch(84% 0.025 145);
+  --color-shadow: oklch(27% 0.025 55 / 0.13);
+
+  --font-display: Georgia, Cambria, "Times New Roman", serif;
+  --font-body: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4.5rem;
+  --space-3xl: 7rem;
+  --space-hero-start: clamp(2rem, 4vw, 4.5rem);
+  --space-hero-end: clamp(3rem, 6vw, 7rem);
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+  --text-display: clamp(2.65rem, 6vw, 5.4rem);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-short: 160ms;
+  --dur-medium: 280ms;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-card: 0.5rem;
+  --radius-pill: 999px;
+  --rule-thin: 1px;
+}

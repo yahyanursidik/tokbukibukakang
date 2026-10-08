@@ -55,19 +55,19 @@ const iconPaths = {
 } as const;
 ---
 
-<header class="sticky top-0 z-30 border-b border-[#eadcc7]/80 bg-[#fff8ef]/92 backdrop-blur-md">
-  <div class="page-shell flex min-h-[72px] items-center justify-between gap-3 py-2.5 sm:min-h-20 sm:py-3">
+<header class="site-header">
+  <div class="page-shell site-header__inner">
     <a href="/" class="flex min-w-0 items-center gap-3" aria-label={`${siteConfig.name} beranda`}>
       <img
-        class="h-12 w-12 shrink-0 rounded-2xl border border-date/15 bg-[#fffaf1] object-contain p-1.5 shadow-soft sm:h-14 sm:w-14"
+        class="site-header__logo"
         src={siteConfig.logoPath}
         alt=""
         loading="eager"
         decoding="async"
       />
       <span class="min-w-0">
-        <span class="block truncate font-serif text-base font-bold leading-tight text-ink sm:text-xl">Books by Ibunya Kakang</span>
-        <span class="block truncate text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-date sm:text-xs">BookStore</span>
+        <span class="site-header__name">Books by Ibunya Kakang</span>
+        <span class="site-header__tagline">Buku anak pilihan keluarga</span>
       </span>
     </a>
 
@@ -91,7 +91,7 @@ const iconPaths = {
           data-active={hasActiveSecondaryItem}
           aria-label="Menu lainnya"
         >
-          Lainnya
+          Panduan & lainnya
           <span class="h-1.5 w-1.5 rotate-45 border-b-2 border-r-2 border-current transition group-open:rotate-[225deg]" aria-hidden="true"></span>
         </summary>
         <nav class="soft-card absolute right-0 mt-3 grid w-56 gap-1 p-3 shadow-soft" aria-label="Navigasi lainnya">
