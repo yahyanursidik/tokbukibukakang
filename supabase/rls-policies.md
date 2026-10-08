@@ -20,7 +20,8 @@ The migration enables RLS on all transaction tables.
 - Keep validating item totals inside RPC functions, not only in browser code.
 - Never ship `SUPABASE_SERVICE_ROLE_KEY` to browser code.
 - Create admin users through Supabase Auth, then insert their `auth.users.id` into `admin_profiles`.
-- Add storage bucket policies separately if payment proof uploads are enabled.
+- Bukti transfer memakai signed upload URL dari server setelah invoice dan nomor WhatsApp cocok.
+- QRIS memakai bucket publik `payment-media`; bukti transfer memakai bucket privat `payment-proofs` dan hanya dapat dibaca admin melalui signed URL sementara.
 
 ## Example Admin Bootstrap
 

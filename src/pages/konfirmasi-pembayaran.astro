@@ -73,10 +73,21 @@ import { siteConfig } from '@/config/site';
 
           <label class="payment-field sm:col-span-2">
             <span>Bukti transfer <small data-proof-status></small></span>
-            <input name="proofImage" type="file" accept="image/png,image/jpeg,image/webp" data-proof-input />
+            <input name="proofImage" type="file" accept="image/png,image/jpeg,image/webp" data-proof-input required />
             <p class="text-xs font-medium text-[#70675e]" data-proof-help>
-              Upload bukti transfer belum aktif sampai Supabase Storage bucket dikonfigurasi.
+              Wajib diunggah. Format JPG, PNG, atau WebP; maksimal 4 MB.
             </p>
+            <figure class="proof-preview hidden" data-proof-preview>
+              <img src="" alt="Pratinjau bukti transfer" data-proof-preview-image />
+              <figcaption>
+                <strong data-proof-file-name></strong>
+                <span data-proof-file-size></span>
+              </figcaption>
+            </figure>
+            <div class="proof-progress hidden" data-proof-progress aria-live="polite">
+              <div><span data-proof-progress-label>Menyiapkan upload...</span><strong data-proof-progress-value>0%</strong></div>
+              <span class="proof-progress__track"><span data-proof-progress-bar></span></span>
+            </div>
           </label>
 
           <label class="payment-field sm:col-span-2">
@@ -122,9 +133,9 @@ import { siteConfig } from '@/config/site';
   import { formatRupiah } from '@/lib/cart';
   import { siteConfig } from '@/config/site';
   import { confirmManualPayment, type PaymentConfirmationValues } from '@/lib/payment-confirmation';
-  import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
-  const proofBucket = import.meta.env.PUBLIC_SUPABASE_PAYMENT_PROOF_BUCKET?.trim();
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
   const form = document.querySelector<HTMLFormElement>('[data-payment-form]');
   const submitButton = document.querySelector<HTMLButtonElement>('[data-payment-submit]');
   const alertBox = document.querySelector<HTMLElement>('[data-payment-alert]');
@@ -133,7 +144,16 @@ import { siteConfig } from '@/config/site';
   const proofInput = document.querySelector<HTMLInputElement>('[data-proof-input]');
   const proofHelp = document.querySelector<HTMLElement>('[data-proof-help]');
   const proofStatus = document.querySelector<HTMLElement>('[data-proof-status]');
+  const proofPreview = document.querySelector<HTMLElement>('[data-proof-preview]');
+  const proofPreviewImage = document.querySelector<HTMLImageElement>('[data-proof-preview-image]');
+  const proofFileName = document.querySelector<HTMLElement>('[data-proof-file-name]');
+  const proofFileSize = document.querySelector<HTMLElement>('[data-proof-file-size]');
+  const proofProgress = document.querySelector<HTMLElement>('[data-proof-progress]');
+  const proofProgressLabel = document.querySelector<HTMLElement>('[data-proof-progress-label]');
+  const proofProgressValue = document.querySelector<HTMLElement>('[data-proof-progress-value]');
+  const proofProgressBar = document.querySelector<HTMLElement>('[data-proof-progress-bar]');
   const helpLink = document.querySelector<HTMLAnchorElement>('[data-payment-help-link]');
+  let proofPreviewUrl = '';
 
   const params = new URLSearchParams(window.location.search);
   const invoiceFromUrl = params.get('invoice');
@@ -211,11 +231,7 @@ import { siteConfig } from '@/config/site';
     const file = proofInput?.files?.[0];
 
     if (!file) {
-      return null;
-    }
-
-    if (!proofBucket) {
-      return null;
+      throw new Error('Mohon pilih bukti transfer terlebih dahulu.');
     }
 
     if (!file.type.startsWith('image/')) {
@@ -229,30 +245,67 @@ import { siteConfig } from '@/config/site';
     return file;
   };
 
+  const setProofProgress = (value: number, label: string) => {
+    const progress = Math.max(0, Math.min(100, Math.round(value)));
+    proofProgress?.classList.remove('hidden');
+    if (proofProgressLabel) proofProgressLabel.textContent = label;
+    if (proofProgressValue) proofProgressValue.textContent = `${progress}%`;
+    if (proofProgressBar) proofProgressBar.style.width = `${progress}%`;
+  };
+
+  const requestSignedUpload = async (file: File, invoiceNumber: string, whatsappNumber: string) => {
+    const response = await fetch('/api/payment-proof-upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        invoiceNumber,
+        whatsappNumber,
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size
+      })
+    });
+    const result = await response.json();
+    if (!response.ok || !result?.bucket || !result?.path || !result?.token || !result?.proofPath) {
+      throw new Error(result?.message ?? 'Jalur upload belum dapat dibuat.');
+    }
+    return result as { bucket: string; path: string; token: string; proofPath: string };
+  };
+
+  const uploadWithProgress = (file: File, signed: { bucket: string; path: string; token: string }) => new Promise<void>((resolve, reject) => {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      reject(new Error('Konfigurasi Supabase belum lengkap.'));
+      return;
+    }
+    const uploadUrl = `${supabaseUrl}/storage/v1/object/upload/sign/${signed.bucket}/${signed.path.split('/').map(encodeURIComponent).join('/')}?token=${encodeURIComponent(signed.token)}`;
+    const body = new FormData();
+    body.append('cacheControl', '31536000');
+    body.append('', file);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', uploadUrl);
+    xhr.setRequestHeader('apikey', supabaseAnonKey);
+    xhr.setRequestHeader('Authorization', `Bearer ${supabaseAnonKey}`);
+    xhr.setRequestHeader('x-upsert', 'false');
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) setProofProgress((event.loaded / event.total) * 100, 'Mengunggah bukti transfer...');
+    });
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error('Upload bukti transfer gagal. Silakan coba kembali.'));
+    });
+    xhr.addEventListener('error', () => reject(new Error('Koneksi terputus saat mengunggah bukti transfer.')));
+    xhr.send(body);
+  });
+
   const uploadProofImage = async (invoiceNumber: string) => {
     const file = getProofFile();
-
-    if (!file || !proofBucket) {
-      return undefined;
-    }
-
-    const supabase = getSupabaseBrowserClient();
-    const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-    const safeInvoice = invoiceNumber.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
-    const path = `${safeInvoice}/${crypto.randomUUID()}.${extension}`;
-    const { error } = await supabase.storage.from(proofBucket).upload(path, file, {
-      cacheControl: '3600',
-      contentType: file.type,
-      upsert: false
-    });
-
-    if (error) {
-      throw new Error(`Upload bukti transfer gagal: ${error.message}`);
-    }
-
-    const { data } = supabase.storage.from(proofBucket).getPublicUrl(path);
-
-    return data.publicUrl;
+    setProofProgress(2, 'Memeriksa invoice dan nomor WhatsApp...');
+    const values = getFormValues();
+    const signed = await requestSignedUpload(file, invoiceNumber, values.whatsappNumber);
+    setProofProgress(8, 'Jalur upload aman siap.');
+    await uploadWithProgress(file, signed);
+    setProofProgress(100, 'Bukti transfer berhasil diunggah.');
+    return signed.proofPath;
   };
 
   const translateRpcError = (message: string) => {
@@ -275,22 +328,34 @@ import { siteConfig } from '@/config/site';
       }
     }
 
-    if (proofBucket) {
-      if (proofStatus) {
-        proofStatus.textContent = 'opsional';
-      }
-      if (proofHelp) {
-        proofHelp.textContent = `Upload aktif ke bucket Storage "${proofBucket}".`;
-      }
-    } else {
-      if (proofStatus) {
-        proofStatus.textContent = 'TODO Storage';
-      }
-      if (proofInput) {
-        proofInput.disabled = true;
-      }
-    }
+    if (proofStatus) proofStatus.textContent = 'wajib';
+    if (proofHelp) proofHelp.textContent = 'Wajib diunggah. Format JPG, PNG, atau WebP; maksimal 4 MB.';
   };
+
+  proofInput?.addEventListener('change', () => {
+    proofProgress?.classList.add('hidden');
+    const file = proofInput.files?.[0];
+    if (proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
+    proofPreviewUrl = '';
+    if (!file) {
+      proofPreview?.classList.add('hidden');
+      return;
+    }
+    try {
+      if (!file.type.startsWith('image/')) throw new Error('Bukti transfer harus berupa gambar.');
+      if (file.size > 4 * 1024 * 1024) throw new Error('Ukuran bukti transfer maksimal 4 MB.');
+      proofPreviewUrl = URL.createObjectURL(file);
+      if (proofPreviewImage) proofPreviewImage.src = proofPreviewUrl;
+      if (proofFileName) proofFileName.textContent = file.name;
+      if (proofFileSize) proofFileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+      proofPreview?.classList.remove('hidden');
+      clearAlert();
+    } catch (error) {
+      proofInput.value = '';
+      proofPreview?.classList.add('hidden');
+      setAlert(error instanceof Error ? error.message : 'Bukti transfer tidak valid.');
+    }
+  });
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -372,6 +437,73 @@ import { siteConfig } from '@/config/site';
       border-color 180ms ease,
       box-shadow 180ms ease,
       background-color 180ms ease;
+  }
+
+  .proof-preview {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 1rem;
+    align-items: center;
+    margin: 0;
+    border: 1px solid rgba(234, 220, 199, 0.95);
+    border-radius: 20px;
+    background: rgba(255, 252, 246, 0.82);
+    padding: 0.75rem;
+  }
+
+  .proof-preview:not(.hidden) {
+    display: grid;
+  }
+
+  .proof-preview img {
+    width: 96px;
+    height: 96px;
+    border-radius: 14px;
+    object-fit: cover;
+  }
+
+  .proof-preview figcaption strong,
+  .proof-preview figcaption span {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+
+  .proof-preview figcaption span {
+    margin-top: 0.3rem;
+    color: #70675e;
+    font-size: 0.78rem;
+  }
+
+  .proof-progress {
+    border-radius: 18px;
+    background: #edf7ef;
+    color: #36543c;
+    padding: 0.85rem 1rem;
+  }
+
+  .proof-progress > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.8rem;
+  }
+
+  .proof-progress__track {
+    display: block;
+    height: 8px;
+    margin-top: 0.65rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #d8eadc;
+  }
+
+  .proof-progress__track > span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: #36543c;
+    transition: width 180ms ease-out;
   }
 
   .payment-field input[type='file'] {

@@ -9,15 +9,14 @@ Copy `.env.example` to `.env` for local development.
 ```bash
 PUBLIC_SUPABASE_URL="https://your-project-ref.supabase.co"
 PUBLIC_SUPABASE_ANON_KEY="your-public-anon-key"
-PUBLIC_SUPABASE_PAYMENT_PROOF_BUCKET=""
 SUPABASE_SERVICE_ROLE_KEY="your-server-only-service-role-key"
 ```
 
 ## Key Rules
 
 - `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` are allowed in browser code.
-- `PUBLIC_SUPABASE_PAYMENT_PROOF_BUCKET` is optional. Leave it empty until a Storage bucket and insert policy for proof images are ready.
 - `SUPABASE_SERVICE_ROLE_KEY` must only be used in server-only code.
+- QRIS menggunakan bucket publik `payment-media`. Bukti transfer menggunakan bucket privat `payment-proofs` dan signed upload URL setelah invoice serta nomor WhatsApp cocok.
 - Do not import `src/lib/supabase/server.ts` from `.astro` client scripts or browser bundles.
 - Public users should only create checkout rows through `create_manual_checkout_order`.
 - Admin order updates should use server actions or protected admin endpoints.
@@ -31,10 +30,14 @@ SUPABASE_SERVICE_ROLE_KEY="your-server-only-service-role-key"
 - Payment confirmation RPC migration: `supabase/migrations/0003_payment_confirmation_rpc.sql`
 - Content CMS migration: `supabase/migrations/0004_content_cms_schema.sql`
 - Initial owner admin seed: `supabase/migrations/0005_seed_owner_admin.sql`
+- Invoice, rekening, QRIS, dan Storage pembayaran: `supabase/migrations/0006_invoice_payment_settings.sql`
+- Bucket privat bukti transfer: `supabase/migrations/0011_private_payment_proofs.sql`
 - RLS notes: `supabase/rls-policies.md`
 - Admin dashboard notes: `docs/admin-dashboard.md`
 
 ## Manual Migration
+
+Run every file in `supabase/migrations` in numeric order through `0011_private_payment_proofs.sql`. The steps below document the original base sequence; later migrations extend invoice, pricing, CRM, email, and private payment-proof storage.
 
 1. Open Supabase Dashboard.
 2. Select the project for Books by Ibunya Kakang.
